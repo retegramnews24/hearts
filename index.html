@@ -87,11 +87,26 @@
             border-radius: 8px;
             margin: 5px 0;
             min-height: 120px;
+            overflow: hidden;
         }
         
+        .card-slot {
+            position: absolute;
+            width: 50px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .card-slot.player-0 { bottom: 10px; left: 50%; transform: translateX(-50%); }
+        .card-slot.player-1 { top: 10px; left: 50%; transform: translateX(-50%); }
+        .card-slot.player-2 { right: 10px; top: 50%; transform: translateY(-50%); }
+        .card-slot.player-3 { left: 10px; top: 50%; transform: translateY(-50%); }
+        
         .center-card {
-            width: 45px;
-            height: 65px;
+            width: 50px;
+            height: 70px;
             background: white;
             border-radius: 4px;
             display: flex;
@@ -100,9 +115,9 @@
             padding: 3px;
             box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
             position: absolute;
-            transform: translate(-50%, -50%);
             background: linear-gradient(135deg, #ffffff, #f5f5f5);
             border: 1px solid #e0e0e0;
+            transition: all 0.5s ease;
         }
         
         .card-top, .card-bottom {
@@ -117,31 +132,17 @@
             transform: rotate(180deg);
         }
         
-        .card-suit {
-            text-align: center;
+        .card-center {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .card-center.small {
             font-size: 20px;
-        }
-        
-        .card-suit.small {
-            font-size: 14px;
-        }
-        
-        .card-symbols {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            gap: 2px;
-        }
-        
-        .card-symbol-row {
-            display: flex;
-            gap: 2px;
         }
         
         .hearts, .diamonds {
@@ -194,7 +195,7 @@
         }
         
         .player-card.selectable:active {
-            transform: translateY(-10px);
+            transform: translateY(-5px);
         }
         
         .player-card.selected {
@@ -296,6 +297,22 @@
             margin-top: 3px;
             color: #3498db;
         }
+        
+        @keyframes throwCard {
+            0% {
+                transform: scale(1) rotate(0deg);
+            }
+            50% {
+                transform: scale(1.1) rotate(5deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+        
+        .card-throw {
+            animation: throwCard 0.5s ease;
+        }
     </style>
 </head>
 <body>
@@ -317,7 +334,11 @@
         </div>
         
         <div class="table" id="table">
-            <!-- Le carte giocate appariranno qui dinamicamente -->
+            <!-- Slot per le carte dei giocatori -->
+            <div class="card-slot player-0"></div>
+            <div class="card-slot player-1"></div>
+            <div class="card-slot player-2"></div>
+            <div class="card-slot player-3"></div>
         </div>
         
         <div class="opponents">
@@ -337,7 +358,7 @@
         <div class="status" id="status">Il gioco sta iniziando...</div>
         
         <div class="controls">
-            <button id="pass-btn" disabled>Passa 3 carte</button>
+            <button id="pass-btn">Scambia 3 carte</button>
             <button id="new-game-btn">Nuova partita</button>
         </div>
     </div>
@@ -397,10 +418,11 @@
             leadSuit: null,
             heartsBroken: false,
             round: 0,
-            passingDirection: 1, // 0: nessuno, 1: destra, 2: sinistra, 3: fronte
+            passingDirection: 0, // 0: nessuno, 1: destra, 2: sinistra, 3: fronte
             cardsToPass: [],
             gameOver: false,
-            passingPhase: true
+            passingPhase: true,
+            randomPassTarget: 0
         };
         
         // Elementi DOM
@@ -422,19 +444,12 @@
             updateUI();
             setupEventListeners();
             
-            // Determina la direzione di passaggio per questo round
-            updatePassingDirection();
+            // Determina un giocatore casuale con cui scambiare le carte
+            gameState.randomPassTarget = Math.floor(Math.random() * 3) + 1; // 1, 2 o 3
+            const targetNames = {1: "Bot 1", 2: "Bot 2", 3: "Bot 3"};
             
-            if (gameState.passingDirection === 0) {
-                // Nessun passaggio, inizia il gioco
-                gameState.passingPhase = false;
-                startGame();
-            } else {
-                // Fase di passaggio delle carte
-                gameState.passingPhase = true;
-                statusEl.textContent = `Seleziona 3 carte da passare ${getPassingDirectionText()}`;
-                enableCardSelection(true);
-            }
+            statusEl.textContent = `Seleziona 3 carte da scambiare con ${targetNames[gameState.randomPassTarget]}`;
+            enableCardSelection(true);
         }
         
         function createDeck() {
@@ -470,20 +485,6 @@
             }
         }
         
-        function updatePassingDirection() {
-            // 0: nessuno, 1: destra, 2: sinistra, 3: fronte
-            gameState.passingDirection = (gameState.round % 4);
-        }
-        
-        function getPassingDirectionText() {
-            switch(gameState.passingDirection) {
-                case 1: return "al giocatore a destra";
-                case 2: return "al giocatore a sinistra";
-                case 3: return "al giocatore di fronte";
-                default: return "";
-            }
-        }
-        
         function updateUI() {
             // Aggiorna la mano del giocatore
             playerHandEl.innerHTML = '';
@@ -513,115 +514,43 @@
             // Aggiungi event listener per la selezione delle carte
             cardEl.addEventListener('click', () => selectCard(index));
             
-            // Crea il contenuto della carta in base al valore
-            let centerContent = '';
-            if (card.value === 'A') {
-                centerContent = `<div class="card-suit ${card.suit}">${SYMBOLS[card.suit]}</div>`;
-            } else if (['J', 'Q', 'K'].includes(card.value)) {
-                let figureChar = card.value === 'J' ? 'J' : card.value === 'Q' ? 'Q' : 'K';
-                centerContent = `
-                    <div class="card-suit ${card.suit} small">${SYMBOLS[card.suit]}</div>
-                    <div class="card-symbols">
-                        <div style="font-size: 18px; font-weight: bold;">${figureChar}</div>
-                    </div>
-                `;
-            } else {
-                // Carte numeriche - mostra i simboli corrispondenti al valore
-                const value = parseInt(card.value);
-                let symbolsHTML = '';
-                
-                if (value <= 5) {
-                    // Una riga di simboli
-                    symbolsHTML = `<div class="card-symbol-row">${Array(value).fill(SYMBOLS[card.suit]).join('')}</div>`;
-                } else if (value <= 8) {
-                    // Due righe di simboli
-                    const firstRow = Math.ceil(value / 2);
-                    const secondRow = value - firstRow;
-                    symbolsHTML = `
-                        <div class="card-symbol-row">${Array(firstRow).fill(SYMBOLS[card.suit]).join('')}</div>
-                        <div class="card-symbol-row">${Array(secondRow).fill(SYMBOLS[card.suit]).join('')}</div>
-                    `;
-                } else {
-                    // Tre righe di simboli per 9 e 10
-                    const rows = value === 9 ? [3, 3, 3] : [4, 3, 3];
-                    symbolsHTML = `
-                        <div class="card-symbol-row">${Array(rows[0]).fill(SYMBOLS[card.suit]).join('')}</div>
-                        <div class="card-symbol-row">${Array(rows[1]).fill(SYMBOLS[card.suit]).join('')}</div>
-                        <div class="card-symbol-row">${Array(rows[2]).fill(SYMBOLS[card.suit]).join('')}</div>
-                    `;
-                }
-                
-                centerContent = `
-                    <div class="card-suit ${card.suit} small">${SYMBOLS[card.suit]}</div>
-                    <div class="card-symbols">
-                        ${symbolsHTML}
-                    </div>
-                `;
-            }
+            // Determina la classe per il centro in base al valore della carta
+            const centerClass = ['J', 'Q', 'K', 'A'].includes(card.value) ? 'card-center' : 'card-center small';
             
             cardEl.innerHTML = `
                 <div class="card-top">${card.value}${SYMBOLS[card.suit]}</div>
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1;">
-                    ${centerContent}
-                </div>
+                <div class="${centerClass} ${card.suit}">${card.value}${SYMBOLS[card.suit]}</div>
                 <div class="card-bottom">${card.value}${SYMBOLS[card.suit]}</div>
             `;
             
             return cardEl;
         }
         
-        function createTableCardElement(card) {
+        function createTableCardElement(card, playerIndex) {
             const cardEl = document.createElement('div');
-            cardEl.className = `center-card ${card.suit}`;
+            cardEl.className = `center-card ${card.suit} card-throw`;
             
-            let centerContent = '';
-            if (card.value === 'A') {
-                centerContent = `<div class="card-suit ${card.suit}">${SYMBOLS[card.suit]}</div>`;
-            } else if (['J', 'Q', 'K'].includes(card.value)) {
-                let figureChar = card.value === 'J' ? 'J' : card.value === 'Q' ? 'Q' : 'K';
-                centerContent = `
-                    <div class="card-suit ${card.suit} small">${SYMBOLS[card.suit]}</div>
-                    <div class="card-symbols">
-                        <div style="font-size: 16px; font-weight: bold;">${figureChar}</div>
-                    </div>
-                `;
-            } else {
-                const value = parseInt(card.value);
-                let symbolsHTML = '';
-                
-                if (value <= 5) {
-                    symbolsHTML = `<div class="card-symbol-row">${Array(value).fill(SYMBOLS[card.suit]).join('')}</div>`;
-                } else if (value <= 8) {
-                    const firstRow = Math.ceil(value / 2);
-                    const secondRow = value - firstRow;
-                    symbolsHTML = `
-                        <div class="card-symbol-row">${Array(firstRow).fill(SYMBOLS[card.suit]).join('')}</div>
-                        <div class="card-symbol-row">${Array(secondRow).fill(SYMBOLS[card.suit]).join('')}</div>
-                    `;
-                } else {
-                    const rows = value === 9 ? [3, 3, 3] : [4, 3, 3];
-                    symbolsHTML = `
-                        <div class="card-symbol-row">${Array(rows[0]).fill(SYMBOLS[card.suit]).join('')}</div>
-                        <div class="card-symbol-row">${Array(rows[1]).fill(SYMBOLS[card.suit]).join('')}</div>
-                        <div class="card-symbol-row">${Array(rows[2]).fill(SYMBOLS[card.suit]).join('')}</div>
-                    `;
-                }
-                
-                centerContent = `
-                    <div class="card-suit ${card.suit} small">${SYMBOLS[card.suit]}</div>
-                    <div class="card-symbols">
-                        ${symbolsHTML}
-                    </div>
-                `;
-            }
+            // Determina la classe per il centro in base al valore della carta
+            const centerClass = ['J', 'Q', 'K', 'A'].includes(card.value) ? 'card-center' : 'card-center small';
             
             cardEl.innerHTML = `
                 <div class="card-top">${card.value}${SYMBOLS[card.suit]}</div>
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1;">
-                    ${centerContent}
-                </div>
+                <div class="${centerClass} ${card.suit}">${card.value}${SYMBOLS[card.suit]}</div>
                 <div class="card-bottom">${card.value}${SYMBOLS[card.suit]}</div>
             `;
+            
+            // Posiziona la carta nello slot del giocatore
+            const slot = tableEl.querySelector(`.player-${playerIndex}`);
+            cardEl.style.left = '50%';
+            cardEl.style.top = '50%';
+            cardEl.style.transform = 'translate(-50%, -50%)';
+            
+            // Animazione di "lancio" verso il centro
+            setTimeout(() => {
+                cardEl.style.left = '50%';
+                cardEl.style.top = '50%';
+                cardEl.style.transform = 'translate(-50%, -50%)';
+            }, 10);
             
             return cardEl;
         }
@@ -643,21 +572,13 @@
         }
         
         function updateTable() {
-            tableEl.innerHTML = '';
+            // Pulisci solo le carte, non gli slot
+            const existingCards = tableEl.querySelectorAll('.center-card');
+            existingCards.forEach(card => card.remove());
             
-            // Posiziona le carte giocate sul tavolo
+            // Aggiungi le carte giocate nei rispettivi slot
             gameState.trick.forEach((play, index) => {
-                const cardEl = createTableCardElement(play.card);
-                
-                // Posiziona le carte intorno al tavolo
-                const angle = (index * 90) * (Math.PI / 180);
-                const radius = 50;
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
-                
-                cardEl.style.left = `calc(50% + ${x}px)`;
-                cardEl.style.top = `calc(50% + ${y}px)`;
-                
+                const cardEl = createTableCardElement(play.card, play.player);
                 tableEl.appendChild(cardEl);
             });
         }
@@ -671,11 +592,11 @@
         }
         
         function selectCard(index) {
-            // Se siamo nella fase di passaggio delle carte
+            // Se siamo nella fase di scambio delle carte
             if (gameState.passingPhase) {
                 const cardEls = playerHandEl.querySelectorAll('.player-card');
                 
-                // Toggle selezione per il passaggio
+                // Toggle selezione per lo scambio
                 if (gameState.cardsToPass.includes(index)) {
                     gameState.cardsToPass = gameState.cardsToPass.filter(i => i !== index);
                     cardEls[index].classList.remove('selected');
@@ -684,7 +605,7 @@
                     cardEls[index].classList.add('selected');
                 }
                 
-                // Abilita/disabilita il pulsante di passaggio
+                // Abilita/disabilita il pulsante di scambio
                 passBtn.disabled = gameState.cardsToPass.length !== 3;
                 
                 return;
@@ -882,18 +803,10 @@
                 gameState.players[0].hand.splice(index, 1);
             }
             
-            // Determina a chi passare le carte
-            let targetPlayer;
-            switch (gameState.passingDirection) {
-                case 1: targetPlayer = 1; break; // Destra
-                case 2: targetPlayer = 3; break; // Sinistra
-                case 3: targetPlayer = 2; break; // Fronte
-            }
-            
             // Aggiungi le carte al giocatore di destinazione
-            gameState.players[targetPlayer].hand.push(...cardsToPass);
+            gameState.players[gameState.randomPassTarget].hand.push(...cardsToPass);
             
-            // I bot passano le loro carte
+            // I bot passano le loro carte a caso
             passBotCards();
             
             // Inizia il gioco
@@ -926,13 +839,11 @@
                     }
                 }
                 
-                // Determina a chi passare le carte
+                // Determina un giocatore casuale a cui passare le carte (diverso da sé stesso)
                 let targetPlayer;
-                switch (gameState.passingDirection) {
-                    case 1: targetPlayer = (i + 1) % 4; break; // Destra
-                    case 2: targetPlayer = (i + 3) % 4; break; // Sinistra
-                    case 3: targetPlayer = (i + 2) % 4; break; // Fronte
-                }
+                do {
+                    targetPlayer = Math.floor(Math.random() * 4);
+                } while (targetPlayer === i);
                 
                 // Aggiungi le carte al giocatore di destinazione
                 gameState.players[targetPlayer].hand.push(...cardsToPass);
@@ -968,7 +879,7 @@
                 setTimeout(playBotTurn, 1000);
             }
             
-            // Disabilita il pulsante di passaggio
+            // Disabilita il pulsante di scambio
             passBtn.disabled = true;
         }
         
@@ -1027,56 +938,22 @@
             // Prepara il prossimo round
             gameState.round++;
             
-            // Determina la direzione di passaggio delle carte
-            updatePassingDirection();
+            // Determina un nuovo giocatore casuale con cui scambiare
+            gameState.randomPassTarget = Math.floor(Math.random() * 3) + 1; // 1, 2 o 3
+            const targetNames = {1: "Bot 1", 2: "Bot 2", 3: "Bot 3"};
             
-            if (gameState.passingDirection === 0) {
-                // Nessun passaggio
-                statusEl.textContent = 'Nuovo round - Nessun passaggio di carte';
-                startNewRound();
-            } else {
-                // Fase di passaggio delle carte
-                gameState.passingPhase = true;
-                statusEl.textContent = `Seleziona 3 carte da passare ${getPassingDirectionText()}`;
-                enableCardSelection(true);
-                passBtn.disabled = true;
-                gameState.cardsToPass = [];
-                
-                // Ricrea il mazzo e distribuisci le carte
-                createDeck();
-                shuffleDeck();
-                dealCards();
-                updateUI();
-            }
-        }
-        
-        function startNewRound() {
-            // Mescola e distribuisci le carte
+            // Fase di scambio delle carte
+            gameState.passingPhase = true;
+            statusEl.textContent = `Seleziona 3 carte da scambiare con ${targetNames[gameState.randomPassTarget]}`;
+            enableCardSelection(true);
+            passBtn.disabled = true;
+            gameState.cardsToPass = [];
+            
+            // Ricrea il mazzo e distribuisci le carte
             createDeck();
             shuffleDeck();
             dealCards();
-            
-            // Resetta lo stato del round
-            gameState.trick = [];
-            gameState.leadSuit = null;
-            gameState.heartsBroken = false;
-            gameState.passingPhase = false;
-            gameState.cardsToPass = [];
-            
-            // Aggiorna l'UI
             updateUI();
-            
-            // Determina chi inizia (chi ha il 2 di fiori)
-            const startingPlayer = findPlayerWithTwoOfClubs();
-            gameState.currentPlayer = startingPlayer;
-            
-            if (startingPlayer === 0) {
-                statusEl.textContent = 'Sei il primo a giocare. Devi giocare il 2 di fiori.';
-                enableCardSelection(true);
-            } else {
-                statusEl.textContent = `Il giocatore ${gameState.players[startingPlayer].name} inizia.`;
-                setTimeout(playBotTurn, 1000);
-            }
         }
         
         function enableCardSelection(enable) {
@@ -1129,10 +1006,11 @@
                 leadSuit: null,
                 heartsBroken: false,
                 round: 0,
-                passingDirection: 1,
+                passingDirection: 0,
                 cardsToPass: [],
                 gameOver: false,
-                passingPhase: true
+                passingPhase: true,
+                randomPassTarget: 0
             };
             
             // Chiudi il modal se aperto
