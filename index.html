@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Hearts - Gioco Completo</title>
+    <title>Hearts</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             margin: 0;
@@ -64,9 +65,9 @@
         .game-board {
             flex: 1;
             display: grid;
-            grid-template-rows: 1fr 160px 1fr;
-            grid-template-columns: 1fr 160px 1fr;
-            gap: 8px;
+            grid-template-rows: 1fr 120px 1fr;
+            grid-template-columns: 1fr 120px 1fr;
+            gap: 5px;
             position: relative;
         }
 
@@ -114,24 +115,16 @@
         }
 
         .deck-pile {
-            width: 80px;
-            height: 112px;
-            background: linear-gradient(45deg, #e74c3c, #9b59b6, #3498db, #2ecc71);
-            border-radius: 8px;
+            width: 70px;
+            height: 98px;
+            background: linear-gradient(135deg, #e74c3c, #9b59b6, #3498db, #2ecc71);
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
-            border: 3px solid rgba(255,255,255,0.3);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-            background-size: 200% 200%;
-            animation: gradientShift 3s ease infinite;
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            font-size: 24px;
+            border: 2px solid rgba(255,255,255,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
 
         .trick-area {
@@ -145,94 +138,8 @@
 
         .played-card {
             position: absolute;
-            width: 70px;
-            height: 98px;
-            background: white;
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            font-weight: bold;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            z-index: 10;
-        }
-
-        .played-card.top { transform: translateY(-90px); }
-        .played-card.left { transform: translateX(-90px); }
-        .played-card.right { transform: translateX(90px); }
-        .played-card.bottom { transform: translateY(90px); }
-
-        /* Carte coperte degli altri giocatori - DUE FILE */
-        .opponent-cards {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            padding: 8px;
-            max-height: 100px;
-        }
-
-        .opponent-cards.vertical {
-            flex-direction: row;
-        }
-
-        .card-row {
-            display: flex;
-            gap: 2px;
-            justify-content: center;
-        }
-
-        .hidden-card {
-            width: 25px;
-            height: 35px;
-            background: linear-gradient(135deg, #e74c3c, #9b59b6, #3498db, #2ecc71);
-            border-radius: 3px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hidden-card::before {
-            content: "♠️♥️♣️♦️";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 6px;
-            opacity: 0.7;
-            text-align: center;
-            line-height: 1;
-            white-space: nowrap;
-        }
-
-        /* Mano del giocatore (in basso) - DUE FILE compatte */
-        .my-hand {
-            height: 110px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-            padding: 8px;
-            flex-shrink: 0;
-            overflow: hidden;
-        }
-
-        .hand-row {
-            display: flex;
-            gap: 2px;
-            justify-content: center;
-            max-width: 100%;
-            flex-wrap: nowrap;
-            overflow: hidden;
-        }
-
-        .card {
-            width: 55px;
-            height: 77px;
+            width: 60px;
+            height: 84px;
             background: white;
             border-radius: 5px;
             display: flex;
@@ -241,19 +148,69 @@
             justify-content: center;
             font-size: 16px;
             font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            z-index: 10;
+        }
+
+        .played-card.top { transform: translateY(-70px); }
+        .played-card.left { transform: translateX(-70px); }
+        .played-card.right { transform: translateX(70px); }
+        .played-card.bottom { transform: translateY(70px); }
+
+        /* Carte coperte degli altri giocatori */
+        .opponent-cards {
+            display: flex;
+            gap: 1px;
+            padding: 5px;
+        }
+
+        .opponent-cards.vertical {
+            flex-direction: column;
+        }
+
+        .hidden-card {
+            width: 20px;
+            height: 28px;
+            background: linear-gradient(135deg, #e74c3c, #9b59b6, #3498db, #2ecc71);
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Mano del giocatore */
+        .my-hand {
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            padding: 5px;
+            flex-shrink: 0;
+        }
+
+        .card {
+            width: 50px;
+            height: 70px;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
             cursor: grab;
-            transition: all 0.3s ease;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
             user-select: none;
             touch-action: none;
             position: relative;
             z-index: 20;
-            flex-shrink: 0;
         }
 
         .card:active {
             cursor: grabbing;
-            transform: scale(1.1) !important;
+            transform: scale(1.1);
             z-index: 30;
         }
 
@@ -276,54 +233,34 @@
         }
 
         .card-value {
-            font-size: 14px;
+            font-size: 12px;
             margin-top: 1px;
         }
 
         /* Controlli */
         .control-panel {
-            display: grid;
-            grid-template-columns: 1fr;
+            display: flex;
             gap: 8px;
             padding: 8px;
             flex-shrink: 0;
         }
 
         .control-btn {
-            background: linear-gradient(45deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
+            flex: 1;
+            background: rgba(255,255,255,0.2);
             border: none;
             color: white;
-            padding: 14px 10px;
-            border-radius: 10px;
+            padding: 12px 8px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 0.9em;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            font-size: 0.8em;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(5px);
         }
 
         .control-btn:active {
-            background: linear-gradient(45deg, rgba(255,255,255,0.3), rgba(255,255,255,0.2));
+            background: rgba(255,255,255,0.3);
             transform: scale(0.95);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        }
-
-        /* Animazioni */
-        @keyframes slideToCenter {
-            from { 
-                transform: translate(var(--start-x), var(--start-y)) scale(1.1);
-                opacity: 0.8;
-            }
-            to { 
-                transform: translate(var(--target-x), var(--target-y)) scale(1);
-                opacity: 1;
-            }
-        }
-
-        .sliding-card {
-            animation: slideToCenter 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
         }
 
         /* Status info */
@@ -334,53 +271,25 @@
             transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.9);
             color: white;
-            padding: 12px 20px;
-            border-radius: 18px;
-            font-size: 0.9em;
+            padding: 10px 16px;
+            border-radius: 15px;
+            font-size: 0.8em;
             z-index: 40;
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(10px);
             text-align: center;
-            border: 2px solid rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
             display: none;
         }
 
-        /* Ottimizzazioni mobile */
-        @media (max-height: 700px) {
-            .game-board {
-                grid-template-rows: 1fr 140px 1fr;
-            }
-            
-            .my-hand {
-                height: 95px;
-            }
-            
-            .card {
-                width: 50px;
-                height: 70px;
-                font-size: 14px;
-            }
-            
-            .played-card {
-                width: 65px;
-                height: 91px;
-                font-size: 16px;
+        /* Animazioni */
+        @keyframes slideToPosition {
+            to { 
+                transform: translate(var(--target-x), var(--target-y));
             }
         }
 
-        @media (max-height: 600px) {
-            .game-board {
-                grid-template-rows: 1fr 120px 1fr;
-            }
-            
-            .my-hand {
-                height: 85px;
-            }
-            
-            .card {
-                width: 45px;
-                height: 63px;
-                font-size: 12px;
-            }
+        .sliding-card {
+            animation: slideToPosition 0.5s ease-out forwards;
         }
     </style>
 </head>
@@ -392,54 +301,38 @@
                 <span class="player-badge" id="playerScore0">0</span>
             </div>
             <div class="player-info">
-                <span>🃏 Mano: <span id="currentRound">1</span>/13</span>
+                <span>🃏 <span id="currentRound">1</span>/13</span>
             </div>
         </div>
 
         <div class="game-board">
-            <!-- Giocatore TOP - DUE FILE ORIZZONTALI -->
+            <!-- Giocatore TOP -->
             <div class="player-top">
-                <div class="opponent-cards" id="opponentTop">
-                    <div class="card-row" id="topRow1"></div>
-                    <div class="card-row" id="topRow2"></div>
-                </div>
+                <div class="opponent-cards" id="opponentTop"></div>
             </div>
 
-            <!-- Giocatore LEFT - DUE FILE VERTICALI -->
+            <!-- Giocatore LEFT -->
             <div class="player-left">
-                <div class="opponent-cards vertical" id="opponentLeft">
-                    <div class="card-row" id="leftRow1"></div>
-                    <div class="card-row" id="leftRow2"></div>
-                </div>
+                <div class="opponent-cards vertical" id="opponentLeft"></div>
             </div>
 
             <!-- Centro con mazzo e carte -->
             <div class="center-area">
                 <div class="deck-pile" id="deckPile">🎴</div>
-                <div class="trick-area" id="trickArea">
-                    <!-- Carte giocate appariranno qui -->
-                </div>
+                <div class="trick-area" id="trickArea"></div>
             </div>
 
-            <!-- Giocatore RIGHT - DUE FILE VERTICALI -->
+            <!-- Giocatore RIGHT -->
             <div class="player-right">
-                <div class="opponent-cards vertical" id="opponentRight">
-                    <div class="card-row" id="rightRow1"></div>
-                    <div class="card-row" id="rightRow2"></div>
-                </div>
+                <div class="opponent-cards vertical" id="opponentRight"></div>
             </div>
 
-            <!-- Giocatore BOTTOM (tu) -->
-            <div class="player-bottom">
-                <!-- Le tue carte sono nella mano in basso -->
-            </div>
+            <!-- Giocatore BOTTOM -->
+            <div class="player-bottom"></div>
         </div>
 
-        <!-- Mano del giocatore - DUE FILE COMPATTE -->
-        <div class="my-hand" id="myHand">
-            <div class="hand-row" id="handRow1"></div>
-            <div class="hand-row" id="handRow2"></div>
-        </div>
+        <!-- Mano del giocatore -->
+        <div class="my-hand" id="myHand"></div>
 
         <!-- Controlli -->
         <div class="control-panel">
@@ -451,45 +344,49 @@
     </div>
 
     <script>
-        // Stato del gioco con regole reali di Hearts
+        // Inizializzazione Telegram Web App
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+
+        // Stato del gioco con regole complete
         const gameState = {
             players: [
                 { name: "Tu", type: "human", score: 0, position: "bottom", tricks: [] },
-                { name: "Bot N", type: "bot", score: 0, position: "top", tricks: [] },
-                { name: "Bot E", type: "bot", score: 0, position: "left", tricks: [] },
-                { name: "Bot S", type: "bot", score: 0, position: "right", tricks: [] }
+                { name: "Nord", type: "bot", score: 0, position: "top", tricks: [] },
+                { name: "Est", type: "bot", score: 0, position: "left", tricks: [] },
+                { name: "Ovest", type: "bot", score: 0, position: "right", tricks: [] }
             ],
             currentPlayer: 0,
             currentTrick: [null, null, null, null],
             leadingSuit: null,
             round: 1,
             trickNumber: 0,
-            myHand: [],
+            hands: [[], [], [], []],
             totalPlayers: 4,
             gamePhase: 'playing',
             heartsBroken: false,
             scores: [0, 0, 0, 0],
+            firstTrick: true,
             cardPositions: {
-                'top': { x: 0, y: -90 },
-                'left': { x: -90, y: 0 },
-                'right': { x: 90, y: 0 },
-                'bottom': { x: 0, y: 90 }
+                'top': { x: 0, y: -70 },
+                'left': { x: -70, y: 0 },
+                'right': { x: 70, y: 0 },
+                'bottom': { x: 0, y: 70 }
             }
         };
 
-        // Mazzo di carte per Hearts
         const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
         const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
-        // Inizializza il gioco con regole reali
+        // Inizializza il gioco
         function initGame() {
             createAndDealCards();
             updateOpponentsCards();
             updateDisplay();
-            showStatus('Le carte sono state distribuite! ♠️♥️♣️♦️');
         }
 
-        // Crea e distribuisce le carte secondo le regole di Hearts
+        // Crea e distribuisce le carte
         function createAndDealCards() {
             let deck = [];
             suits.forEach(suit => {
@@ -503,27 +400,26 @@
                 });
             });
             
-            // Mescola il mazzo
+            // Mescola e distribuisci
             deck = shuffleArray(deck);
+            for (let i = 0; i < 4; i++) {
+                gameState.hands[i] = deck.slice(i * 13, (i + 1) * 13).sort(sortCards);
+            }
+            gameState.myHand = gameState.hands[0];
             
-            // Distribuisci 13 carte a ogni giocatore
-            gameState.myHand = deck.slice(0, 13).sort(sortCards);
-            
-            // Trova chi ha il 2 di fiori per iniziare
-            const twoOfClubsIndex = gameState.myHand.findIndex(card => 
-                card.suit === 'clubs' && card.value === '2'
-            );
-            
-            if (twoOfClubsIndex !== -1) {
-                gameState.currentPlayer = 0; // Tu inizi se hai il 2 di fiori
-            } else {
-                gameState.currentPlayer = Math.floor(Math.random() * 4);
+            // Trova chi ha il 2 di fiori
+            for (let i = 0; i < 4; i++) {
+                if (gameState.hands[i].some(card => card.suit === 'clubs' && card.value === '2')) {
+                    gameState.currentPlayer = i;
+                    break;
+                }
             }
             
             renderMyHand();
+            showStatus(gameState.currentPlayer === 0 ? 'Il tuo turno! Inizia con 2♣️' : 'Aspettando altri giocatori...');
         }
 
-        // Punti delle carte secondo le regole di Hearts
+        // Punti delle carte
         function getCardPoints(suit, value) {
             if (suit === 'hearts') return 1;
             if (suit === 'spades' && value === 'Q') return 13;
@@ -539,54 +435,38 @@
             return array;
         }
 
-        // Ordina le carte per seme e valore
+        // Ordina le carte
         function sortCards(a, b) {
             const suitOrder = { 'spades': 0, 'hearts': 1, 'diamonds': 2, 'clubs': 3 };
             return suitOrder[a.suit] - suitOrder[b.suit] || values.indexOf(a.value) - values.indexOf(b.value);
         }
 
-        // Renderizza la mano del giocatore su due file compatte
+        // Renderizza la mano del giocatore
         function renderMyHand() {
-            const handRow1 = document.getElementById('handRow1');
-            const handRow2 = document.getElementById('handRow2');
-            handRow1.innerHTML = '';
-            handRow2.innerHTML = '';
+            const handContainer = document.getElementById('myHand');
+            handContainer.innerHTML = '';
             
-            // Dividi le carte in due file mantenendo l'ordine
-            const half = Math.ceil(gameState.myHand.length / 2);
-            const firstRow = gameState.myHand.slice(0, half);
-            const secondRow = gameState.myHand.slice(half);
-            
-            firstRow.forEach((card, index) => {
-                createCardElement(card, index, handRow1);
-            });
-            
-            secondRow.forEach((card, index) => {
-                createCardElement(card, index + half, handRow2);
+            gameState.myHand.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card ${card.suit} ${gameState.currentPlayer === 0 && isValidPlay(card) ? 'playable' : ''}`;
+                cardElement.innerHTML = `
+                    <div>${getCardSymbol(card.suit)}</div>
+                    <div class="card-value">${card.value}</div>
+                `;
+                cardElement.dataset.index = index;
+                cardElement.dataset.cardId = card.id;
+                
+                setupCardDrag(cardElement, card, index);
+                
+                if (gameState.currentPlayer !== 0 || !isValidPlay(card)) {
+                    cardElement.classList.add('disabled');
+                }
+                
+                handContainer.appendChild(cardElement);
             });
         }
 
-        // Crea elemento carta con drag & drop
-        function createCardElement(card, index, container) {
-            const cardElement = document.createElement('div');
-            cardElement.className = `card ${card.suit} ${gameState.currentPlayer === 0 ? 'playable' : ''}`;
-            cardElement.innerHTML = `
-                <div>${getCardSymbol(card.suit)}</div>
-                <div class="card-value">${card.value}</div>
-            `;
-            cardElement.dataset.index = index;
-            cardElement.dataset.cardId = card.id;
-            
-            setupCardDrag(cardElement, card, index);
-            
-            if (gameState.currentPlayer !== 0) {
-                cardElement.classList.add('disabled');
-            }
-            
-            container.appendChild(cardElement);
-        }
-
-        // Setup drag & drop per le carte
+        // Setup drag & drop
         function setupCardDrag(cardElement, card, index) {
             let startX, startY;
             
@@ -619,105 +499,95 @@
                 const deltaY = touch.clientY - startY;
                 const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
                 
-                if (distance > 50) {
-                    playCardWithAnimation(index, deltaX, deltaY);
+                if (distance > 40) {
+                    playCardWithAnimation(index);
                 } else {
-                    cardElement.style.transition = 'all 0.3s ease';
+                    cardElement.style.transition = 'all 0.2s ease';
                     cardElement.style.transform = '';
                     cardElement.style.zIndex = '20';
                 }
             });
         }
 
-        // Controlla se la mossa è valida secondo le regole di Hearts
+        // Controlla mossa valida
         function isValidPlay(card) {
-            // Se è la prima carta del trick
-            if (gameState.currentTrick.every(c => c === null)) {
-                // Primo trick: deve giocare 2 di fiori se lo ha
-                if (gameState.round === 1 && gameState.trickNumber === 0) {
-                    const hasTwoClubs = gameState.myHand.some(c => 
-                        c.suit === 'clubs' && c.value === '2'
-                    );
-                    if (hasTwoClubs) {
-                        return card.suit === 'clubs' && card.value === '2';
-                    }
+            const playerHand = gameState.hands[gameState.currentPlayer];
+            
+            // Se è il primo trick e primo giro
+            if (gameState.firstTrick && gameState.currentTrick.every(c => c === null)) {
+                // Chi ha il 2 di fiori deve giocarlo
+                const hasTwoClubs = playerHand.some(c => c.suit === 'clubs' && c.value === '2');
+                if (hasTwoClubs) {
+                    return card.suit === 'clubs' && card.value === '2';
                 }
-                // Non si possono giocare cuori o Q♠️ finché non sono stati rotti i cuori
-                if (!gameState.heartsBroken) {
-                    if (card.suit === 'hearts') return false;
-                    if (card.suit === 'spades' && card.value === 'Q') return false;
-                }
-                return true;
+                // Altri giocatori possono giocare qualsiasi carta tranne punti
+                return card.points === 0;
             }
             
-            // Se c'è già un seme di attacco, deve seguire seme
+            // Se c'è un seme di attacco
             if (gameState.leadingSuit) {
-                const hasLeadingSuit = gameState.myHand.some(c => c.suit === gameState.leadingSuit);
+                const hasLeadingSuit = playerHand.some(c => c.suit === gameState.leadingSuit);
                 if (hasLeadingSuit) {
                     return card.suit === gameState.leadingSuit;
                 }
             }
             
+            // Se è la prima carta del trick e cuori non sono rotti
+            if (gameState.currentTrick.every(c => c === null) && !gameState.heartsBroken) {
+                return card.suit !== 'hearts' && !(card.suit === 'spades' && card.value === 'Q');
+            }
+            
             return true;
         }
 
-        // Gioca una carta con animazione
-        function playCardWithAnimation(cardIndex, startX, startY) {
-            if (gameState.currentPlayer !== 0 || gameState.myHand.length === 0) return;
-            
+        // Gioca carta con animazione
+        function playCardWithAnimation(cardIndex) {
             const card = gameState.myHand[cardIndex];
-            if (!isValidPlay(card)) {
-                showStatus('Mossa non valida!');
-                return;
-            }
-            
             const cardElement = document.querySelector(`[data-card-id="${card.id}"]`);
-            if (!cardElement) return;
             
-            // Animazione verso il centro
-            cardElement.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-            cardElement.style.transform = `translate(0, 0) scale(1.1)`;
+            cardElement.style.transition = 'all 0.4s ease';
+            cardElement.style.transform = 'translate(0, 0) scale(1.1)';
             cardElement.style.zIndex = '1000';
             
             setTimeout(() => {
                 cardElement.remove();
                 playCard(cardIndex);
-            }, 400);
+            }, 300);
         }
 
-        // Gioca una carta (logica di gioco)
+        // Gioca carta
         function playCard(cardIndex) {
             const card = gameState.myHand[cardIndex];
-            gameState.currentTrick[0] = card;
+            
+            // Rimuovi dalla mano
             gameState.myHand.splice(cardIndex, 1);
+            gameState.hands[0].splice(cardIndex, 1);
+            gameState.currentTrick[0] = card;
             
-            // Aggiorna stato cuori rotti
-            if (card.suit === 'hearts') {
-                gameState.heartsBroken = true;
-            }
-            
+            // Aggiorna stato
+            if (card.suit === 'hearts') gameState.heartsBroken = true;
             if (gameState.currentTrick.filter(c => c).length === 1) {
                 gameState.leadingSuit = card.suit;
             }
             
+            gameState.firstTrick = false;
+            
             addCardToCenter(card, 'bottom');
-            simulateBotMoves();
+            playBotMoves();
         }
 
-        // Aggiungi carta al centro con animazione
+        // Aggiungi carta al centro
         function addCardToCenter(card, position) {
             const trickArea = document.getElementById('trickArea');
             const cardElement = document.createElement('div');
             cardElement.className = `played-card ${position}`;
             cardElement.innerHTML = `
                 <div>${getCardSymbol(card.suit)}</div>
-                <div style="font-size: 14px; margin-top: 1px;">${card.value}</div>
+                <div style="font-size: 12px;">${card.value}</div>
             `;
             cardElement.style.color = card.suit === 'hearts' || card.suit === 'diamonds' ? '#e74c3c' : '#2c3e50';
             
             const pos = gameState.cardPositions[position];
-            cardElement.style.setProperty('--start-x', `${pos.x}px`);
-            cardElement.style.setProperty('--start-y', `${pos.y}px`);
             cardElement.style.setProperty('--target-x', `${pos.x}px`);
             cardElement.style.setProperty('--target-y', `${pos.y}px`);
             cardElement.classList.add('sliding-card');
@@ -725,92 +595,119 @@
             trickArea.appendChild(cardElement);
         }
 
-        // Simula mosse dei bot con regole di Hearts
-        function simulateBotMoves() {
-            let movesCompleted = 0;
-            const totalMoves = 3; // 3 bot
+        // Mosse dei bot
+        function playBotMoves() {
+            let currentBot = 1;
             
-            const playBotMove = (botIndex) => {
-                setTimeout(() => {
-                    if (!gameState.currentTrick[botIndex]) {
-                        const randomCard = {
-                            suit: suits[Math.floor(Math.random() * suits.length)],
-                            value: values[Math.floor(Math.random() * values.length)],
-                            id: Math.random(),
-                            points: 0
-                        };
-                        gameState.currentTrick[botIndex] = randomCard;
-                        
-                        const positions = ['top', 'right', 'left'];
-                        addCardToCenter(randomCard, positions[botIndex-1]);
-                        updateOpponentsCards();
-                    }
+            const playNextBot = () => {
+                if (currentBot > 3) {
+                    // Tutte le mosse completate
+                    setTimeout(completeTrick, 2000);
+                    return;
+                }
+                
+                const botHand = gameState.hands[currentBot];
+                const validCards = botHand.filter(card => isValidBotPlay(card, currentBot));
+                
+                if (validCards.length > 0) {
+                    const card = validCards[Math.floor(Math.random() * validCards.length)];
+                    const cardIndex = botHand.indexOf(card);
                     
-                    movesCompleted++;
-                    if (movesCompleted === totalMoves) {
-                        // Tutte le mosse completate, aspetta 2 secondi e poi continua
-                        setTimeout(() => {
-                            completeTrick();
-                        }, 2000);
-                    }
-                }, 600 * (botIndex));
+                    // Rimuovi dalla mano del bot
+                    botHand.splice(cardIndex, 1);
+                    gameState.currentTrick[currentBot] = card;
+                    
+                    addCardToCenter(card, ['top', 'left', 'right'][currentBot - 1]);
+                    updateOpponentsCards();
+                    
+                    currentBot++;
+                    setTimeout(playNextBot, 500);
+                }
             };
             
-            // Esegui mosse bot in sequenza
-            for (let i = 1; i <= totalMoves; i++) {
-                playBotMove(i);
-            }
+            playNextBot();
         }
 
-        // Aggiorna carte coperte degli avversari su DUE FILE
+        // Controlla mossa valida per bot
+        function isValidBotPlay(card, botIndex) {
+            const botHand = gameState.hands[botIndex];
+            
+            if (gameState.firstTrick && gameState.currentTrick.every(c => c === null)) {
+                const hasTwoClubs = botHand.some(c => c.suit === 'clubs' && c.value === '2');
+                if (hasTwoClubs) {
+                    return card.suit === 'clubs' && card.value === '2';
+                }
+                return card.points === 0;
+            }
+            
+            if (gameState.leadingSuit) {
+                const hasLeadingSuit = botHand.some(c => c.suit === gameState.leadingSuit);
+                if (hasLeadingSuit) {
+                    return card.suit === gameState.leadingSuit;
+                }
+            }
+            
+            if (gameState.currentTrick.every(c => c === null) && !gameState.heartsBroken) {
+                return card.suit !== 'hearts' && !(card.suit === 'spades' && card.value === 'Q');
+            }
+            
+            return true;
+        }
+
+        // Aggiorna carte coperte
         function updateOpponentsCards() {
             const opponents = [
-                { id: 'Top', rows: ['topRow1', 'topRow2'], cardCount: 13 - Math.floor(gameState.round / 4) },
-                { id: 'Left', rows: ['leftRow1', 'leftRow2'], cardCount: 13 - Math.floor(gameState.round / 4) },
-                { id: 'Right', rows: ['rightRow1', 'rightRow2'], cardCount: 13 - Math.floor(gameState.round / 4) }
+                { id: 'Top', cards: gameState.hands[1].length },
+                { id: 'Left', cards: gameState.hands[2].length },
+                { id: 'Right', cards: gameState.hands[3].length }
             ];
             
             opponents.forEach(opponent => {
-                const totalCards = Math.min(10, opponent.cardCount);
-                const cardsPerRow = Math.ceil(totalCards / 2);
+                const container = document.getElementById(`opponent${opponent.id}`);
+                container.innerHTML = '';
                 
-                opponent.rows.forEach((rowId, rowIndex) => {
-                    const row = document.getElementById(rowId);
-                    row.innerHTML = '';
-                    
-                    const start = rowIndex * cardsPerRow;
-                    const end = Math.min(start + cardsPerRow, totalCards);
-                    
-                    for (let i = start; i < end; i++) {
-                        const hiddenCard = document.createElement('div');
-                        hiddenCard.className = 'hidden-card';
-                        row.appendChild(hiddenCard);
-                    }
-                });
+                const cardCount = Math.min(8, opponent.cards);
+                for (let i = 0; i < cardCount; i++) {
+                    const hiddenCard = document.createElement('div');
+                    hiddenCard.className = 'hidden-card';
+                    container.appendChild(hiddenCard);
+                }
             });
         }
 
-        // Completa il trick e calcola il vincitore
+        // Completa il trick
         function completeTrick() {
-            // Calcola chi vince il trick (semplificato)
-            const trickWinner = Math.floor(Math.random() * 4);
-            gameState.currentPlayer = trickWinner;
-            gameState.trickNumber++;
+            // Determina vincitore del trick
+            const leadingCard = gameState.currentTrick.find(card => card && card.suit === gameState.leadingSuit);
+            let winnerIndex = 0;
+            let highestValue = -1;
             
-            // Calcola punti del trick
+            for (let i = 0; i < 4; i++) {
+                const card = gameState.currentTrick[i];
+                if (card && card.suit === gameState.leadingSuit) {
+                    const valueIndex = values.indexOf(card.value);
+                    if (valueIndex > highestValue) {
+                        highestValue = valueIndex;
+                        winnerIndex = i;
+                    }
+                }
+            }
+            
+            // Calcola punti
             let trickPoints = 0;
             gameState.currentTrick.forEach(card => {
-                if (card) {
-                    trickPoints += card.points;
-                }
+                if (card) trickPoints += card.points;
             });
             
-            gameState.scores[trickWinner] += trickPoints;
-            gameState.players[trickWinner].score = gameState.scores[trickWinner];
+            gameState.scores[winnerIndex] += trickPoints;
+            gameState.players[winnerIndex].score = gameState.scores[winnerIndex];
+            gameState.currentPlayer = winnerIndex;
+            gameState.trickNumber++;
             
             if (gameState.trickNumber >= 13) {
                 endRound();
             } else {
+                // Prepara prossimo trick
                 gameState.currentTrick = [null, null, null, null];
                 gameState.leadingSuit = null;
                 gameState.round++;
@@ -821,36 +718,36 @@
                 if (gameState.currentPlayer === 0) {
                     showStatus('Il tuo turno!');
                 }
+                
+                // Pulisci centro dopo 2 secondi
+                setTimeout(() => {
+                    document.getElementById('trickArea').innerHTML = '';
+                }, 2000);
             }
-            
-            // Pulisci il centro dopo 2 secondi di visualizzazione
-            setTimeout(() => {
-                document.getElementById('trickArea').innerHTML = '';
-            }, 2000);
         }
 
         // Fine round
         function endRound() {
-            // Verifica "Shoot the Moon"
+            // Shoot the moon
             const moonShooter = gameState.scores.findIndex(score => score === 26);
             if (moonShooter !== -1) {
-                // Shoot the moon: tutti gli altri prendono 26 punti
                 gameState.scores = gameState.scores.map((score, index) => 
                     index === moonShooter ? 0 : 26
                 );
                 showStatus(`🎯 ${gameState.players[moonShooter].name} ha fatto Shoot the Moon!`);
             }
             
-            // Aggiorna punteggi totali
+            // Aggiorna punteggi
             gameState.players.forEach((player, index) => {
                 player.score += gameState.scores[index];
             });
             
-            // Reset per nuovo round
+            // Reset
             gameState.round = 1;
             gameState.trickNumber = 0;
             gameState.scores = [0, 0, 0, 0];
             gameState.heartsBroken = false;
+            gameState.firstTrick = true;
             
             createAndDealCards();
             updateDisplay();
@@ -867,15 +764,15 @@
             gameState.trickNumber = 0;
             gameState.scores = [0, 0, 0, 0];
             gameState.heartsBroken = false;
+            gameState.firstTrick = true;
             
             document.getElementById('trickArea').innerHTML = '';
             createAndDealCards();
             updateDisplay();
             updateOpponentsCards();
-            showStatus('Nuova partita iniziata! 🎮');
         }
 
-        // Ottiene il simbolo della carta
+        // Simbolo carta
         function getCardSymbol(suit) {
             const suitSymbols = {
                 'hearts': '♥️',
@@ -894,10 +791,10 @@
             
             setTimeout(() => {
                 statusElement.style.display = 'none';
-            }, 2000);
+            }, 1500);
         }
 
-        // Aggiorna tutto il display
+        // Aggiorna display
         function updateDisplay() {
             document.getElementById('playerScore0').textContent = gameState.players[0].score;
             document.getElementById('currentRound').textContent = gameState.round;
@@ -905,7 +802,7 @@
             renderMyHand();
         }
 
-        // Inizializza al caricamento
+        // Inizializza
         window.onload = initGame;
     </script>
 </body>
