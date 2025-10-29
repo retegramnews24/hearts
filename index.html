@@ -65,8 +65,8 @@
         .game-board {
             flex: 1;
             display: grid;
-            grid-template-rows: 1fr 180px 1fr;
-            grid-template-columns: 1fr 180px 1fr;
+            grid-template-rows: 1fr 160px 1fr;
+            grid-template-columns: 1fr 160px 1fr;
             gap: 8px;
             position: relative;
         }
@@ -115,14 +115,14 @@
         }
 
         .deck-pile {
-            width: 90px;
-            height: 126px;
-            background: linear-gradient(45deg, #e74c3c, #9b59b6, #3498db);
-            border-radius: 10px;
+            width: 80px;
+            height: 112px;
+            background: linear-gradient(45deg, #e74c3c, #9b59b6, #3498db, #2ecc71);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 36px;
+            font-size: 32px;
             border: 3px solid rgba(255,255,255,0.3);
             box-shadow: 0 6px 20px rgba(0,0,0,0.4);
             background-size: 200% 200%;
@@ -146,100 +146,115 @@
 
         .played-card {
             position: absolute;
-            width: 80px;
-            height: 112px;
-            background: white;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            z-index: 10;
-        }
-
-        .played-card.top { transform: translateY(-100px); }
-        .played-card.left { transform: translateX(-100px); }
-        .played-card.right { transform: translateX(100px); }
-        .played-card.bottom { transform: translateY(100px); }
-
-        /* Carte coperte degli altri giocatori - VERTICALI per left/right */
-        .opponent-cards {
-            display: flex;
-            gap: 2px;
-            padding: 10px;
-        }
-
-        .opponent-cards.vertical {
-            flex-direction: column;
-        }
-
-        .hidden-card {
-            width: 30px;
-            height: 42px;
-            background: linear-gradient(135deg, #e74c3c, #9b59b6);
-            border-radius: 4px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-            border: 2px solid rgba(255,255,255,0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hidden-card::before {
-            content: "♠️♥️";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 8px;
-            opacity: 0.6;
-            text-align: center;
-            line-height: 1;
-        }
-
-        /* Mano del giocatore (in basso) - DUE FILE */
-        .my-hand {
-            height: 140px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            padding: 12px;
-            flex-shrink: 0;
-        }
-
-        .hand-row {
-            display: flex;
-            gap: 4px;
-            justify-content: center;
-        }
-
-        .card {
             width: 70px;
             height: 98px;
             background: white;
-            border-radius: 7px;
+            border-radius: 6px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             font-size: 18px;
             font-weight: bold;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 10;
+        }
+
+        .played-card.top { transform: translateY(-90px); }
+        .played-card.left { transform: translateX(-90px); }
+        .played-card.right { transform: translateX(90px); }
+        .played-card.bottom { transform: translateY(90px); }
+
+        /* Carte coperte degli altri giocatori - DUE FILE */
+        .opponent-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 8px;
+            max-height: 100px;
+        }
+
+        .opponent-cards.vertical {
+            flex-direction: row;
+        }
+
+        .card-row {
+            display: flex;
+            gap: 2px;
+            justify-content: center;
+        }
+
+        .hidden-card {
+            width: 25px;
+            height: 35px;
+            background: linear-gradient(135deg, #e74c3c, #9b59b6, #3498db, #2ecc71);
+            border-radius: 3px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hidden-card::before {
+            content: "♠️♥️♣️♦️";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 6px;
+            opacity: 0.7;
+            text-align: center;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        /* Mano del giocatore (in basso) - DUE FILE compatte */
+        .my-hand {
+            height: 110px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            padding: 8px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .hand-row {
+            display: flex;
+            gap: 2px;
+            justify-content: center;
+            max-width: 100%;
+            flex-wrap: nowrap;
+            overflow: hidden;
+        }
+
+        .card {
+            width: 55px;
+            height: 77px;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
             cursor: grab;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
             user-select: none;
             touch-action: none;
             position: relative;
             z-index: 20;
+            flex-shrink: 0;
         }
 
         .card:active {
             cursor: grabbing;
-            transform: scale(1.15) !important;
+            transform: scale(1.1) !important;
             z-index: 30;
         }
 
@@ -257,21 +272,21 @@
         }
 
         .card.playable {
-            border: 3px solid #4CAF50;
-            transform: translateY(-8px);
+            border: 2px solid #4CAF50;
+            transform: translateY(-5px);
         }
 
         .card-value {
-            font-size: 16px;
-            margin-top: 2px;
+            font-size: 14px;
+            margin-top: 1px;
         }
 
         /* Controlli */
         .control-panel {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            padding: 10px;
+            gap: 8px;
+            padding: 8px;
             flex-shrink: 0;
         }
 
@@ -279,21 +294,21 @@
             background: linear-gradient(45deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
             border: none;
             color: white;
-            padding: 16px 12px;
-            border-radius: 12px;
+            padding: 14px 10px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 1em;
+            font-size: 0.9em;
             font-weight: 600;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
         }
 
         .control-btn:active {
             background: linear-gradient(45deg, rgba(255,255,255,0.3), rgba(255,255,255,0.2));
             transform: scale(0.95);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
         /* Animazioni */
@@ -303,7 +318,7 @@
                 opacity: 0.8;
             }
             to { 
-                transform: translate(0, 0) scale(1);
+                transform: translate(var(--target-x), var(--target-y)) scale(1);
                 opacity: 1;
             }
         }
@@ -320,9 +335,9 @@
             transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.9);
             color: white;
-            padding: 15px 25px;
-            border-radius: 20px;
-            font-size: 1em;
+            padding: 12px 20px;
+            border-radius: 18px;
+            font-size: 0.9em;
             z-index: 40;
             backdrop-filter: blur(15px);
             text-align: center;
@@ -333,23 +348,39 @@
         /* Ottimizzazioni mobile */
         @media (max-height: 700px) {
             .game-board {
-                grid-template-rows: 1fr 160px 1fr;
+                grid-template-rows: 1fr 140px 1fr;
             }
             
             .my-hand {
-                height: 120px;
+                height: 95px;
             }
             
             .card {
+                width: 50px;
+                height: 70px;
+                font-size: 14px;
+            }
+            
+            .played-card {
                 width: 65px;
                 height: 91px;
                 font-size: 16px;
             }
+        }
+
+        @media (max-height: 600px) {
+            .game-board {
+                grid-template-rows: 1fr 120px 1fr;
+            }
             
-            .played-card {
-                width: 75px;
-                height: 105px;
-                font-size: 18px;
+            .my-hand {
+                height: 85px;
+            }
+            
+            .card {
+                width: 45px;
+                height: 63px;
+                font-size: 12px;
             }
         }
     </style>
@@ -367,17 +398,19 @@
         </div>
 
         <div class="game-board">
-            <!-- Giocatore TOP -->
+            <!-- Giocatore TOP - DUE FILE ORIZZONTALI -->
             <div class="player-top">
                 <div class="opponent-cards" id="opponentTop">
-                    <!-- Carte coperte del bot top -->
+                    <div class="card-row" id="topRow1"></div>
+                    <div class="card-row" id="topRow2"></div>
                 </div>
             </div>
 
-            <!-- Giocatore LEFT - VERTICALE -->
+            <!-- Giocatore LEFT - DUE FILE VERTICALI -->
             <div class="player-left">
                 <div class="opponent-cards vertical" id="opponentLeft">
-                    <!-- Carte coperte del bot left (verticali) -->
+                    <div class="card-row" id="leftRow1"></div>
+                    <div class="card-row" id="leftRow2"></div>
                 </div>
             </div>
 
@@ -389,10 +422,11 @@
                 </div>
             </div>
 
-            <!-- Giocatore RIGHT - VERTICALE -->
+            <!-- Giocatore RIGHT - DUE FILE VERTICALI -->
             <div class="player-right">
                 <div class="opponent-cards vertical" id="opponentRight">
-                    <!-- Carte coperte del bot right (verticali) -->
+                    <div class="card-row" id="rightRow1"></div>
+                    <div class="card-row" id="rightRow2"></div>
                 </div>
             </div>
 
@@ -402,7 +436,7 @@
             </div>
         </div>
 
-        <!-- Mano del giocatore - DUE FILE -->
+        <!-- Mano del giocatore - DUE FILE COMPATTE -->
         <div class="my-hand" id="myHand">
             <div class="hand-row" id="handRow1"></div>
             <div class="hand-row" id="handRow2"></div>
@@ -414,7 +448,7 @@
             <button class="control-btn" onclick="newGame()">🔄 NUOVA PARTITA</button>
         </div>
 
-        <!-- Status info (sostituisce i popup) -->
+        <!-- Status info -->
         <div class="game-status" id="gameStatus"></div>
     </div>
 
@@ -441,13 +475,13 @@
             totalPlayers: 4,
             gamePhase: 'playing',
             heartsBroken: false,
+            scores: [0, 0, 0, 0],
             cardPositions: {
-                'top': { x: 0, y: -100 },
-                'left': { x: -100, y: 0 },
-                'right': { x: 100, y: 0 },
-                'bottom': { x: 0, y: 100 }
-            },
-            scores: [0, 0, 0, 0]
+                'top': { x: 0, y: -90 },
+                'left': { x: -90, y: 0 },
+                'right': { x: 90, y: 0 },
+                'bottom': { x: 0, y: 90 }
+            }
         };
 
         // Mazzo di carte per Hearts
@@ -518,13 +552,14 @@
             return suitOrder[a.suit] - suitOrder[b.suit] || values.indexOf(a.value) - values.indexOf(b.value);
         }
 
-        // Renderizza la mano del giocatore su due file
+        // Renderizza la mano del giocatore su due file compatte
         function renderMyHand() {
             const handRow1 = document.getElementById('handRow1');
             const handRow2 = document.getElementById('handRow2');
             handRow1.innerHTML = '';
             handRow2.innerHTML = '';
             
+            // Dividi le carte in due file mantenendo l'ordine
             const half = Math.ceil(gameState.myHand.length / 2);
             const firstRow = gameState.myHand.slice(0, half);
             const secondRow = gameState.myHand.slice(half);
@@ -591,7 +626,7 @@
                 const deltaY = touch.clientY - startY;
                 const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
                 
-                if (distance > 60) {
+                if (distance > 50) {
                     playCardWithAnimation(index, deltaX, deltaY);
                 } else {
                     cardElement.style.transition = 'all 0.3s ease';
@@ -648,7 +683,7 @@
             
             // Animazione verso il centro
             cardElement.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-            cardElement.style.transform = `translate(0, 0) scale(1.2)`;
+            cardElement.style.transform = `translate(0, 0) scale(1.1)`;
             cardElement.style.zIndex = '1000';
             
             setTimeout(() => {
@@ -683,13 +718,15 @@
             cardElement.className = `played-card ${position}`;
             cardElement.innerHTML = `
                 <div>${getCardSymbol(card.suit)}</div>
-                <div style="font-size: 16px; margin-top: 2px;">${card.value}</div>
+                <div style="font-size: 14px; margin-top: 1px;">${card.value}</div>
             `;
             cardElement.style.color = card.suit === 'hearts' || card.suit === 'diamonds' ? '#e74c3c' : '#2c3e50';
             
             const pos = gameState.cardPositions[position];
             cardElement.style.setProperty('--start-x', `${pos.x}px`);
             cardElement.style.setProperty('--start-y', `${pos.y}px`);
+            cardElement.style.setProperty('--target-x', `${pos.x}px`);
+            cardElement.style.setProperty('--target-y', `${pos.y}px`);
             cardElement.classList.add('sliding-card');
             
             trickArea.appendChild(cardElement);
@@ -716,8 +753,6 @@
             const playBotMove = (botIndex) => {
                 setTimeout(() => {
                     if (!gameState.currentTrick[botIndex]) {
-                        // Logica semplificata per i bot
-                        const validCards = []; // I bot giocano sempre valido in questa versione
                         const randomCard = {
                             suit: suits[Math.floor(Math.random() * suits.length)],
                             value: values[Math.floor(Math.random() * values.length)],
@@ -734,7 +769,9 @@
                     movesCompleted++;
                     if (movesCompleted === totalMoves) {
                         // Tutte le mosse completate, aspetta 2 secondi e poi continua
-                        setTimeout(completeTrick, 2000);
+                        setTimeout(() => {
+                            completeTrick();
+                        }, 2000);
                     }
                 }, 600 * (botIndex));
             };
@@ -745,24 +782,31 @@
             }
         }
 
-        // Aggiorna carte coperte degli avversari
+        // Aggiorna carte coperte degli avversari su DUE FILE
         function updateOpponentsCards() {
             const opponents = [
-                { id: 'Top', cards: 13 - Math.floor(gameState.round / 4) },
-                { id: 'Left', cards: 13 - Math.floor(gameState.round / 4) },
-                { id: 'Right', cards: 13 - Math.floor(gameState.round / 4) }
+                { id: 'Top', rows: ['topRow1', 'topRow2'], cardCount: 13 - Math.floor(gameState.round / 4) },
+                { id: 'Left', rows: ['leftRow1', 'leftRow2'], cardCount: 13 - Math.floor(gameState.round / 4) },
+                { id: 'Right', rows: ['rightRow1', 'rightRow2'], cardCount: 13 - Math.floor(gameState.round / 4) }
             ];
             
             opponents.forEach(opponent => {
-                const container = document.getElementById(`opponent${opponent.id}`);
-                container.innerHTML = '';
+                const totalCards = Math.min(10, opponent.cardCount);
+                const cardsPerRow = Math.ceil(totalCards / 2);
                 
-                const cardCount = Math.min(8, opponent.cards);
-                for (let i = 0; i < cardCount; i++) {
-                    const hiddenCard = document.createElement('div');
-                    hiddenCard.className = 'hidden-card';
-                    container.appendChild(hiddenCard);
-                }
+                opponent.rows.forEach((rowId, rowIndex) => {
+                    const row = document.getElementById(rowId);
+                    row.innerHTML = '';
+                    
+                    const start = rowIndex * cardsPerRow;
+                    const end = Math.min(start + cardsPerRow, totalCards);
+                    
+                    for (let i = start; i < end; i++) {
+                        const hiddenCard = document.createElement('div');
+                        hiddenCard.className = 'hidden-card';
+                        row.appendChild(hiddenCard);
+                    }
+                });
             });
         }
 
@@ -799,7 +843,7 @@
                 }
             }
             
-            // Pulisci il centro dopo 2 secondi
+            // Pulisci il centro dopo 2 secondi di visualizzazione
             setTimeout(() => {
                 document.getElementById('trickArea').innerHTML = '';
             }, 2000);
@@ -862,7 +906,7 @@
             return suitSymbols[suit];
         }
 
-        // Mostra status (sostituisce i popup)
+        // Mostra status
         function showStatus(message) {
             const statusElement = document.getElementById('gameStatus');
             statusElement.textContent = message;
