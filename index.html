@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Hearts - Telegram</title>
+    <title>Hearts</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -20,42 +20,56 @@
             height: 100vh;
             overflow: hidden;
             padding: 0;
+            touch-action: none;
         }
 
         .game-container {
             height: 100vh;
             display: flex;
             flex-direction: column;
-            padding: 10px;
+            padding: 5px;
         }
 
-        .header {
-            text-align: center;
-            padding: 10px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            margin-bottom: 10px;
-            backdrop-filter: blur(10px);
+        .players-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            margin-bottom: 5px;
             flex-shrink: 0;
         }
 
-        .header h1 {
-            font-size: 1.3em;
-            margin-bottom: 2px;
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            padding: 6px 12px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
         }
 
-        .header p {
+        .player-badge {
             font-size: 0.8em;
-            opacity: 0.8;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: #4CAF50;
+        }
+
+        .player-badge.bot {
+            background: #9c27b0;
+        }
+
+        .player-badge.waiting {
+            background: #ff9800;
         }
 
         .game-board {
             flex: 1;
             display: grid;
-            grid-template-rows: 1fr 120px 1fr;
-            grid-template-columns: 1fr 120px 1fr;
-            gap: 8px;
-            margin-bottom: 10px;
+            grid-template-rows: 1fr 150px 1fr;
+            grid-template-columns: 1fr 150px 1fr;
+            gap: 5px;
             position: relative;
         }
 
@@ -97,107 +111,104 @@
             grid-column: 2;
             grid-row: 2;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 8px;
             position: relative;
         }
 
         .deck-pile {
-            width: 60px;
-            height: 84px;
+            width: 80px;
+            height: 112px;
             background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            border: 2px dashed rgba(255,255,255,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .trick-area {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .played-card {
+            position: absolute;
+            width: 70px;
+            height: 98px;
+            background: white;
             border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            border: 2px dashed rgba(255,255,255,0.3);
-        }
-
-        .trick-cards {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            gap: 4px;
-            width: 80px;
-            height: 80px;
-        }
-
-        .trick-card {
-            width: 35px;
-            height: 49px;
-            background: rgba(255,255,255,0.9);
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
+            font-size: 18px;
             font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            transition: all 0.5s ease;
+            z-index: 10;
+        }
+
+        .played-card.top { transform: translateY(-80px); }
+        .played-card.left { transform: translateX(-80px); }
+        .played-card.right { transform: translateX(80px); }
+        .played-card.bottom { transform: translateY(80px); }
+
+        /* Carte coperte degli altri giocatori */
+        .opponent-cards {
+            display: flex;
+            gap: 3px;
+            padding: 8px;
+        }
+
+        .hidden-card {
+            width: 25px;
+            height: 35px;
+            background: linear-gradient(45deg, #e74c3c, #9b59b6);
+            border-radius: 3px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-
-        /* Stili giocatori */
-        .player {
-            padding: 8px 12px;
-            background: rgba(255,255,255,0.15);
-            border-radius: 8px;
-            min-width: 80px;
-            text-align: center;
-            backdrop-filter: blur(5px);
-            border: 2px solid transparent;
-        }
-
-        .player.current {
-            background: rgba(76, 175, 80, 0.3);
-            border-color: #4CAF50;
-        }
-
-        .player-badge {
-            font-size: 0.7em;
-            padding: 2px 6px;
-            border-radius: 8px;
-            background: #4CAF50;
-            margin-top: 4px;
-            display: block;
-        }
-
-        .player-badge.waiting {
-            background: #ff9800;
-        }
-
-        .player-badge.bot {
-            background: #9c27b0;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         /* Mano del giocatore (in basso) */
         .my-hand {
-            height: 100px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 8px;
+            height: 120px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 3px;
+            gap: 4px;
+            padding: 10px;
             flex-shrink: 0;
         }
 
         .card {
-            width: 40px;
-            height: 56px;
+            width: 65px;
+            height: 91px;
             background: white;
-            border-radius: 4px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 16px;
             font-weight: bold;
-            cursor: pointer;
+            cursor: grab;
             transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            flex-shrink: 0;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            user-select: none;
+            touch-action: none;
+            position: relative;
+            z-index: 20;
+        }
+
+        .card:active {
+            cursor: grabbing;
+            transform: scale(1.1) !important;
+            z-index: 30;
         }
 
         .card.hearts, .card.diamonds {
@@ -215,15 +226,15 @@
 
         .card.playable {
             border: 2px solid #4CAF50;
-            transform: translateY(-5px);
+            transform: translateY(-10px);
         }
 
-        /* Pannello controllo */
+        /* Controlli */
         .control-panel {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
-            margin-top: 8px;
+            padding: 8px;
             flex-shrink: 0;
         }
 
@@ -231,60 +242,17 @@
             background: rgba(255,255,255,0.2);
             border: none;
             color: white;
-            padding: 12px 8px;
-            border-radius: 8px;
+            padding: 14px 8px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 0.8em;
+            font-size: 0.9em;
             transition: all 0.2s ease;
-            min-height: 44px;
             backdrop-filter: blur(5px);
         }
 
         .control-btn:active {
             background: rgba(255,255,255,0.3);
-            transform: scale(0.98);
-        }
-
-        .control-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Info partita */
-        .game-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 8px;
-            flex-shrink: 0;
-        }
-
-        .info-card {
-            background: rgba(255,255,255,0.15);
-            padding: 8px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 0.8em;
-        }
-
-        .info-card h3 {
-            font-size: 0.7em;
-            opacity: 0.9;
-            margin-bottom: 2px;
-        }
-
-        /* Punteggi */
-        .score-badge {
-            font-size: 0.7em;
-            background: rgba(0,0,0,0.3);
-            padding: 2px 6px;
-            border-radius: 10px;
-            margin-left: 4px;
-        }
-
-        .leader {
-            color: #f1c40f;
+            transform: scale(0.95);
         }
 
         /* Notifiche */
@@ -293,14 +261,15 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             color: white;
-            padding: 10px 16px;
-            border-radius: 20px;
-            font-size: 0.8em;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
             z-index: 100;
             backdrop-filter: blur(10px);
             animation: fadeInOut 2s ease-in-out;
+            text-align: center;
         }
 
         @keyframes fadeInOut {
@@ -308,108 +277,85 @@
             20%, 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         }
 
+        /* Animazioni */
+        @keyframes slideToCenter {
+            from { transform: translate(var(--start-x), var(--start-y)); }
+            to { transform: translate(0, 0); }
+        }
+
+        .sliding-card {
+            animation: slideToCenter 0.5s ease-out forwards;
+        }
+
         /* Ottimizzazioni mobile */
         @media (max-height: 700px) {
             .game-board {
-                grid-template-rows: 1fr 100px 1fr;
+                grid-template-rows: 1fr 130px 1fr;
             }
             
             .my-hand {
-                height: 80px;
+                height: 100px;
             }
             
             .card {
-                width: 35px;
-                height: 49px;
-                font-size: 10px;
-            }
-        }
-
-        @media (max-height: 600px) {
-            .game-board {
-                grid-template-rows: 1fr 80px 1fr;
+                width: 55px;
+                height: 77px;
+                font-size: 14px;
             }
             
-            .my-hand {
-                height: 70px;
-            }
-            
-            .card {
-                width: 32px;
-                height: 45px;
-                font-size: 9px;
+            .played-card {
+                width: 60px;
+                height: 84px;
+                font-size: 16px;
             }
         }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <div class="header">
-            <h1>♥️♠️ HEARTS ♣️♦️</h1>
-            <p>2-4 Giocatori • Multiplayer</p>
-        </div>
-
-        <div class="game-info">
-            <div class="info-card">
-                <h3>TURNO</h3>
-                <p id="currentTurn">Tu</p>
+        <div class="players-header">
+            <div class="player-info">
+                <span>Tu</span>
+                <span class="player-badge" id="playerScore0">0</span>
             </div>
-            <div class="info-card">
-                <h3>MANO</h3>
-                <p id="currentTrick">1/13</p>
-            </div>
-            <div class="info-card">
-                <h3>SEME</h3>
-                <p id="currentSuit">-</p>
-            </div>
-            <div class="info-card">
-                <h3>GIOCATORI</h3>
-                <p id="playerCount">2/4</p>
+            <div class="player-info">
+                <span>Giocatori: <span id="playerCount">2</span>/4</span>
             </div>
         </div>
 
         <div class="game-board">
             <!-- Giocatore TOP -->
             <div class="player-top">
-                <div class="player" id="playerTop">
-                    <div>Bot 1</div>
-                    <span class="player-badge bot">🤖 0</span>
+                <div class="opponent-cards" id="opponentTop">
+                    <!-- Carte coperte del bot top -->
                 </div>
             </div>
 
             <!-- Giocatore LEFT -->
             <div class="player-left">
-                <div class="player" id="playerLeft">
-                    <div>Bot 2</div>
-                    <span class="player-badge bot">🤖 0</span>
+                <div class="opponent-cards" id="opponentLeft">
+                    <!-- Carte coperte del bot left -->
                 </div>
             </div>
 
             <!-- Centro con mazzo e carte -->
             <div class="center-area">
                 <div class="deck-pile" id="deckPile">🃏</div>
-                <div class="trick-cards" id="trickCards">
-                    <div class="trick-card"></div>
-                    <div class="trick-card"></div>
-                    <div class="trick-card"></div>
-                    <div class="trick-card"></div>
+                <div class="trick-area" id="trickArea">
+                    <!-- Carte giocate appariranno qui -->
                 </div>
             </div>
 
             <!-- Giocatore RIGHT -->
             <div class="player-right">
-                <div class="player" id="playerRight">
-                    <div>Bot 3</div>
-                    <span class="player-badge bot">🤖 0</span>
+                <div class="opponent-cards" id="opponentRight">
+                    <!-- Carte coperte del bot right -->
                 </div>
             </div>
 
             <!-- Giocatore BOTTOM (tu) -->
             <div class="player-bottom">
-                <div class="player current" id="playerBottom">
-                    <div>Tu</div>
-                    <span class="player-badge">🎯 0</span>
-                </div>
+                <!-- Le tue carte sono nella mano in basso -->
             </div>
         </div>
 
@@ -421,9 +367,7 @@
         <!-- Controlli -->
         <div class="control-panel">
             <button class="control-btn" onclick="playRandomCard()" id="playBtn">🎯 GIOCA CARTA</button>
-            <button class="control-btn" onclick="addBot()" id="addBotBtn">➕ AGGIUNGI BOT</button>
             <button class="control-btn" onclick="newGame()">🔄 NUOVA PARTITA</button>
-            <button class="control-btn" onclick="simulateRound()">⚡ SIMULA MANO</button>
         </div>
     </div>
 
@@ -446,8 +390,14 @@
             leadingSuit: null,
             round: 1,
             myHand: [],
-            totalPlayers: 2,
-            gamePhase: 'playing'
+            totalPlayers: 4, // Sempre 4 giocatori con bot automatici
+            gamePhase: 'playing',
+            cardPositions: {
+                'top': { x: 0, y: -80 },
+                'left': { x: -80, y: 0 },
+                'right': { x: 80, y: 0 },
+                'bottom': { x: 0, y: 80 }
+            }
         };
 
         // Mazzo di carte
@@ -457,9 +407,9 @@
         // Inizializza il gioco
         function initGame() {
             createDeck();
-            updatePlayersDisplay();
+            updateOpponentsCards();
             updateDisplay();
-            showNotification('Partita iniziata! 👋');
+            showNotification('Partita iniziata! Le carte sono state mescolate 🃏');
         }
 
         // Crea e mischia il mazzo
@@ -467,16 +417,19 @@
             let deck = [];
             suits.forEach(suit => {
                 values.forEach(value => {
-                    deck.push({ suit, value });
+                    deck.push({ suit, value, id: Math.random() });
                 });
             });
             
+            // Mescola il mazzo
             deck = shuffleArray(deck);
+            
+            // Distribuisci le carte
             gameState.myHand = deck.slice(0, 13).sort(sortCards);
             renderMyHand();
         }
 
-        // Mischia array
+        // Mescola array in modo più efficiente
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -491,7 +444,7 @@
             return suitOrder[a.suit] - suitOrder[b.suit] || values.indexOf(a.value) - values.indexOf(b.value);
         }
 
-        // Renderizza la mano del giocatore
+        // Renderizza la mano del giocatore con drag & drop
         function renderMyHand() {
             const handContainer = document.getElementById('myHand');
             handContainer.innerHTML = '';
@@ -500,7 +453,11 @@
                 const cardElement = document.createElement('div');
                 cardElement.className = `card ${card.suit} ${gameState.currentPlayer === 0 ? 'playable' : ''}`;
                 cardElement.innerHTML = getCardSymbol(card.suit, card.value);
-                cardElement.onclick = () => playCard(index);
+                cardElement.dataset.index = index;
+                cardElement.dataset.cardId = card.id;
+                
+                // Aggiungi drag & drop
+                setupCardDrag(cardElement, card, index);
                 
                 if (gameState.currentPlayer !== 0) {
                     cardElement.classList.add('disabled');
@@ -508,6 +465,208 @@
                 
                 handContainer.appendChild(cardElement);
             });
+        }
+
+        // Setup drag & drop per le carte
+        function setupCardDrag(cardElement, card, index) {
+            let startX, startY, currentX, currentY;
+            
+            cardElement.addEventListener('touchstart', (e) => {
+                if (gameState.currentPlayer !== 0) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+                currentX = startX;
+                currentY = startY;
+                cardElement.style.transition = 'none';
+                cardElement.style.zIndex = '1000';
+            });
+            
+            cardElement.addEventListener('touchmove', (e) => {
+                if (gameState.currentPlayer !== 0) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - startX;
+                const deltaY = touch.clientY - startY;
+                
+                // Muovi la carta
+                cardElement.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${deltaX * 0.1}deg)`;
+                
+                currentX = touch.clientX;
+                currentY = touch.clientY;
+            });
+            
+            cardElement.addEventListener('touchend', (e) => {
+                if (gameState.currentPlayer !== 0) return;
+                e.preventDefault();
+                
+                const deltaX = currentX - startX;
+                const deltaY = currentY - startY;
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                
+                // Se la carta è stata trascinata abbastanza lontano, giocala
+                if (distance > 50) {
+                    playCardWithAnimation(index, deltaX, deltaY);
+                } else {
+                    // Altrimenti resetta la posizione
+                    cardElement.style.transition = 'all 0.3s ease';
+                    cardElement.style.transform = '';
+                    cardElement.style.zIndex = '20';
+                }
+            });
+        }
+
+        // Gioca una carta con animazione
+        function playCardWithAnimation(cardIndex, startX, startY) {
+            if (gameState.currentPlayer !== 0 || gameState.myHand.length === 0) return;
+            
+            const card = gameState.myHand[cardIndex];
+            const cardElement = document.querySelector(`[data-card-id="${card.id}"]`);
+            
+            if (!cardElement) return;
+            
+            // Animazione verso il centro
+            cardElement.style.transition = 'all 0.5s ease';
+            cardElement.style.transform = `translate(0, 0) scale(1.2)`;
+            cardElement.style.zIndex = '1000';
+            
+            setTimeout(() => {
+                cardElement.remove();
+                gameState.currentTrick[0] = card;
+                gameState.myHand.splice(cardIndex, 1);
+                
+                if (gameState.currentTrick.filter(c => c).length === 1) {
+                    gameState.leadingSuit = card.suit;
+                }
+                
+                // Aggiungi la carta al centro con posizione
+                addCardToCenter(card, 'bottom');
+                
+                simulateBotMoves();
+                updateDisplay();
+                
+                setTimeout(completeTrick, 2000);
+            }, 500);
+        }
+
+        // Aggiungi carta al centro con animazione
+        function addCardToCenter(card, position) {
+            const trickArea = document.getElementById('trickArea');
+            const cardElement = document.createElement('div');
+            cardElement.className = `played-card ${position}`;
+            cardElement.innerHTML = getCardSymbol(card.suit, card.value);
+            cardElement.style.color = card.suit === 'hearts' || card.suit === 'diamonds' ? '#e74c3c' : '#2c3e50';
+            
+            // Animazione slide dal bordo
+            const pos = gameState.cardPositions[position];
+            cardElement.style.setProperty('--start-x', `${pos.x}px`);
+            cardElement.style.setProperty('--start-y', `${pos.y}px`);
+            cardElement.classList.add('sliding-card');
+            
+            trickArea.appendChild(cardElement);
+        }
+
+        // Gioca una carta random (fallback)
+        function playRandomCard() {
+            if (gameState.currentPlayer !== 0 || gameState.myHand.length === 0) return;
+            
+            const playableCards = gameState.myHand;
+            if (playableCards.length > 0) {
+                const randomIndex = Math.floor(Math.random() * playableCards.length);
+                playCardWithAnimation(randomIndex, 0, -100);
+            }
+        }
+
+        // Simula mosse dei bot
+        function simulateBotMoves() {
+            setTimeout(() => {
+                for (let i = 1; i < gameState.totalPlayers; i++) {
+                    if (!gameState.currentTrick[i]) {
+                        const randomCard = {
+                            suit: suits[Math.floor(Math.random() * suits.length)],
+                            value: values[Math.floor(Math.random() * values.length)],
+                            id: Math.random()
+                        };
+                        gameState.currentTrick[i] = randomCard;
+                        
+                        // Aggiungi la carta del bot al centro
+                        const positions = ['top', 'right', 'left'];
+                        addCardToCenter(randomCard, positions[i-1]);
+                        
+                        // Aggiorna carte coperte
+                        updateOpponentsCards();
+                    }
+                }
+            }, 800);
+        }
+
+        // Aggiorna carte coperte degli avversari
+        function updateOpponentsCards() {
+            const opponents = ['Top', 'Left', 'Right'];
+            opponents.forEach((opponent, index) => {
+                const container = document.getElementById(`opponent${opponent}`);
+                container.innerHTML = '';
+                
+                // Mostra numero di carte rimanenti (semplificato)
+                const cardCount = 13 - gameState.round + 1;
+                for (let i = 0; i < Math.min(5, cardCount); i++) {
+                    const hiddenCard = document.createElement('div');
+                    hiddenCard.className = 'hidden-card';
+                    container.appendChild(hiddenCard);
+                }
+            });
+        }
+
+        // Completa il trick
+        function completeTrick() {
+            showNotification(`Mano ${gameState.round} completata!`);
+            
+            // Pulisci il centro
+            document.getElementById('trickArea').innerHTML = '';
+            gameState.currentTrick = [null, null, null, null];
+            gameState.leadingSuit = null;
+            gameState.round++;
+            
+            // Cambia turno
+            gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.totalPlayers;
+            
+            if (gameState.round > 13) {
+                endRound();
+            } else {
+                updateDisplay();
+                updateOpponentsCards();
+            }
+        }
+
+        // Fine round
+        function endRound() {
+            showNotification('Round completato! 🏆');
+            // Calcola punti
+            gameState.players.forEach((player, index) => {
+                player.score += Math.floor(Math.random() * 5);
+            });
+            
+            gameState.round = 1;
+            gameState.currentPlayer = Math.floor(Math.random() * gameState.totalPlayers);
+            createDeck();
+            updateDisplay();
+            updateOpponentsCards();
+        }
+
+        // Nuova partita
+        function newGame() {
+            gameState.players.forEach(player => player.score = 0);
+            gameState.currentPlayer = 0;
+            gameState.currentTrick = [null, null, null, null];
+            gameState.leadingSuit = null;
+            gameState.round = 1;
+            
+            document.getElementById('trickArea').innerHTML = '';
+            createDeck();
+            updateDisplay();
+            updateOpponentsCards();
+            showNotification('Nuova partita! Le carte sono state mescolate 🎮');
         }
 
         // Ottiene il simbolo della carta
@@ -519,130 +678,6 @@
                 'spades': '♠️'
             };
             return `${suitSymbols[suit]}${value}`;
-        }
-
-        // Gioca una carta
-        function playCard(cardIndex) {
-            if (gameState.currentPlayer !== 0 || gameState.myHand.length === 0) return;
-            
-            const card = gameState.myHand[cardIndex];
-            gameState.currentTrick[0] = card;
-            gameState.myHand.splice(cardIndex, 1);
-            
-            if (gameState.currentTrick.filter(c => c).length === 1) {
-                gameState.leadingSuit = card.suit;
-            }
-            
-            simulateBotMoves();
-            updateDisplay();
-            setTimeout(completeTrick, 1500);
-        }
-
-        // Gioca una carta random
-        function playRandomCard() {
-            if (gameState.currentPlayer !== 0 || gameState.myHand.length === 0) return;
-            
-            const playableCards = gameState.myHand;
-            if (playableCards.length > 0) {
-                const randomIndex = Math.floor(Math.random() * playableCards.length);
-                playCard(randomIndex);
-            }
-        }
-
-        // Simula mosse dei bot
-        function simulateBotMoves() {
-            for (let i = 1; i < gameState.totalPlayers; i++) {
-                if (!gameState.currentTrick[i]) {
-                    const randomCard = {
-                        suit: suits[Math.floor(Math.random() * suits.length)],
-                        value: values[Math.floor(Math.random() * values.length)]
-                    };
-                    gameState.currentTrick[i] = randomCard;
-                }
-            }
-        }
-
-        // Completa il trick
-        function completeTrick() {
-            showNotification(`Mano ${gameState.round} completata! ✅`);
-            gameState.currentTrick = [null, null, null, null];
-            gameState.leadingSuit = null;
-            gameState.round++;
-            
-            gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.totalPlayers;
-            
-            if (gameState.round > 13) {
-                endRound();
-            } else {
-                updateDisplay();
-            }
-        }
-
-        // Simula un round completo
-        function simulateRound() {
-            if (gameState.currentPlayer === 0) {
-                playRandomCard();
-            }
-        }
-
-        // Fine round
-        function endRound() {
-            showNotification('Round completato! 🏆');
-            gameState.players.forEach((player, index) => {
-                player.score += Math.floor(Math.random() * 5);
-            });
-            
-            gameState.round = 1;
-            gameState.currentPlayer = Math.floor(Math.random() * gameState.totalPlayers);
-            createDeck();
-            updateDisplay();
-        }
-
-        // Aggiunge un bot
-        function addBot() {
-            if (gameState.totalPlayers < 4) {
-                gameState.totalPlayers++;
-                updatePlayersDisplay();
-                showNotification(`Bot ${gameState.totalPlayers} aggiunto! 🤖`);
-                updateDisplay();
-            } else {
-                showNotification('Massimo 4 giocatori! ❌');
-            }
-        }
-
-        // Nuova partita
-        function newGame() {
-            gameState.players.forEach(player => player.score = 0);
-            gameState.currentPlayer = 0;
-            gameState.currentTrick = [null, null, null, null];
-            gameState.leadingSuit = null;
-            gameState.round = 1;
-            gameState.totalPlayers = 2;
-            
-            updatePlayersDisplay();
-            createDeck();
-            updateDisplay();
-            showNotification('Nuova partita! 🎮');
-        }
-
-        // Aggiorna display giocatori
-        function updatePlayersDisplay() {
-            // Aggiorna visibilità giocatori
-            document.getElementById('playerTop').style.display = gameState.totalPlayers >= 2 ? 'block' : 'none';
-            document.getElementById('playerLeft').style.display = gameState.totalPlayers >= 3 ? 'block' : 'none';
-            document.getElementById('playerRight').style.display = gameState.totalPlayers >= 4 ? 'block' : 'none';
-
-            // Aggiorna punteggi e stato
-            gameState.players.forEach((player, index) => {
-                const playerElement = document.getElementById(`player${player.position.charAt(0).toUpperCase() + player.position.slice(1)}`);
-                if (playerElement) {
-                    const badge = playerElement.querySelector('.player-badge');
-                    badge.textContent = player.type === 'bot' ? `🤖 ${player.score}` : `🎯 ${player.score}`;
-                    badge.className = `player-badge ${player.type === 'bot' ? 'bot' : ''} ${index === gameState.currentPlayer ? '' : 'waiting'}`;
-                    
-                    playerElement.className = `player ${index === gameState.currentPlayer ? 'current' : ''}`;
-                }
-            });
         }
 
         // Mostra notifica
@@ -659,44 +694,17 @@
 
         // Aggiorna tutto il display
         function updateDisplay() {
-            // Aggiorna info
-            document.getElementById('currentTurn').textContent = gameState.players[gameState.currentPlayer].name;
-            document.getElementById('currentTrick').textContent = `${gameState.round}/13`;
-            document.getElementById('currentSuit').textContent = gameState.leadingSuit ? 
-                getCardSymbol(gameState.leadingSuit, '') : '-';
-            document.getElementById('playerCount').textContent = `${gameState.totalPlayers}/4`;
+            // Aggiorna punteggi
+            document.getElementById('playerScore0').textContent = gameState.players[0].score;
+            document.getElementById('playerCount').textContent = gameState.totalPlayers;
 
-            // Aggiorna carte nel centro
-            const trickCards = document.getElementById('trickCards');
-            trickCards.innerHTML = '';
-            
-            // Posizioni delle carte nel trick (in ordine: top, right, bottom, left)
-            const positions = [1, 3, 0, 2]; // Mappa le posizioni
-            
-            for (let i = 0; i < 4; i++) {
-                const cardElement = document.createElement('div');
-                cardElement.className = 'trick-card';
-                
-                const trickIndex = positions[i];
-                if (gameState.currentTrick[trickIndex]) {
-                    const card = gameState.currentTrick[trickIndex];
-                    cardElement.innerHTML = getCardSymbol(card.suit, card.value);
-                    cardElement.style.background = 'white';
-                    cardElement.style.color = card.suit === 'hearts' || card.suit === 'diamonds' ? '#e74c3c' : '#2c3e50';
-                }
-                
-                trickCards.appendChild(cardElement);
-            }
-
-            // Aggiorna mazzo
+            // Aggiorna mazzo (solo primo round)
             document.getElementById('deckPile').style.display = gameState.round === 1 ? 'flex' : 'none';
 
             // Aggiorna controlli
             document.getElementById('playBtn').disabled = gameState.currentPlayer !== 0 || gameState.myHand.length === 0;
-            document.getElementById('addBotBtn').disabled = gameState.totalPlayers >= 4;
 
-            // Aggiorna giocatori e mano
-            updatePlayersDisplay();
+            // Aggiorna mano
             renderMyHand();
         }
 
