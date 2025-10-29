@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hearts - Telegram</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .tg-container {
+            max-width: 100%;
+            padding: 12px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 15px 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 1.4em;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+
+        .game-status {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .status-card {
+            background: rgba(255,255,255,0.15);
+            padding: 12px 8px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .status-card h3 {
+            font-size: 0.8em;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .table-container {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            min-height: 200px;
+        }
+
+        .trick-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .played-card {
+            width: 50px;
+            height: 70px;
+            background: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .player-card {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .player-card.current {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4CAF50;
+        }
+
+        .player-badge {
+            font-size: 0.7em;
+            padding: 2px 6px;
+            border-radius: 8px;
+            background: #4CAF50;
+        }
+
+        .player-badge.waiting {
+            background: #ff9800;
+        }
+
+        .player-badge.bot {
+            background: #9c27b0;
+        }
+
+        .my-hand {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 70px; /* Spazio per i bottoni fissi */
+        }
+
+        .hand-title {
+            font-size: 1em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .hand-cards {
+            display: flex;
+            gap: 4px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 5px 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .hand-cards::-webkit-scrollbar {
+            display: none;
+        }
+
+        .card {
+            flex: 0 0 auto;
+            width: 45px;
+            height: 63px;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .card.hearts, .card.diamonds {
+            color: #e74c3c;
+        }
+
+        .card.clubs, .card.spades {
+            color: #2c3e50;
+        }
+
+        .card.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .card.playable {
+            border: 2px solid #4CAF50;
+        }
+
+        .fixed-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(26, 35, 126, 0.95);
+            padding: 12px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 12px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s ease;
+            min-height: 44px;
+        }
+
+        .control-btn:active {
+            background: rgba(255,255,255,0.3);
+            transform: scale(0.98);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .scores-panel {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.85em;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .score-item:last-child {
+            border-bottom: none;
+        }
+
+        .leader {
+            color: #f1c40f;
+            font-weight: bold;
+        }
+
+        .chat-notification {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Ottimizzazioni per schermi piccoli */
+        @media (max-width: 320px) {
+            .card {
+                width: 40px;
+                height: 56px;
+                font-size: 12px;
+            }
+            
+            .played-card {
+                width: 45px;
+                height: 63px;
+                font-size: 14px;
+            }
+            
+            .status-card {
+                padding: 10px 6px;
+                font-size: 0.8em;
+            }
+        }
+
+        /* Animazioni */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: slideIn 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="tg-container">
+        <div class="header">
+            <h1>♥️♠️ HEARTS ♣️♦️</h1>
+            <p>2-4 Giocatori • Multiplayer</p>
+        </div>
+
+        <div class="game-status">
+            <div class="status-card">
+                <h3>STATO</h3>
+                <p id="gameState">In attesa</p>
+            </div>
+            <div class="status-card">
+                <h3>TURNO</h3>
+                <p id="currentTurn">-</p>
+            </div>
+            <div class="status-card">
+                <h3>MANO</h3>
+                <p id="currentTrick">1/13</p>
+            </div>
+            <div class="status-card">
+                <h3>SEME</h3>
+                <p id="currentSuit">-</p>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h3 style="font-size: 0.9em; margin-bottom: 10px;">🃏 TAVOLO DI GIOCO</h3>
+            
+            <div class="trick-area" id="trickArea">
+                <div class="played-card" style="background: rgba(255,255,255,0.1);">?</div>
+                <div class="played-card" style="background: rgba(255,255,255,0.1);">?</div>
+                <div class="played-card" style="background: rgba(255,255,255,0.1);">?</div>
+                <div class="played-card" style="background: rgba(255,255,255,0.1);">?</div>
+            </div>
+
+            <div class="players-grid" id="playersGrid">
+                <!-- Giocatori dinamici -->
+            </div>
+
+            <div class="scores-panel">
+                <div class="score-item">
+                    <span>Tu</span>
+                    <span id="scorePlayer0" class="leader">0</span>
+                </div>
+                <div class="score-item">
+                    <span id="player1Name">Bot 1</span>
+                    <span id="scorePlayer1">0</span>
+                </div>
+                <div class="score-item">
+                    <span id="player2Name">Bot 2</span>
+                    <span id="scorePlayer2">0</span>
+                </div>
+                <div class="score-item">
+                    <span id="player3Name">Bot 3</span>
+                    <span id="scorePlayer3">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="my-hand">
+            <div class="hand-title">🎴 LA TUA MANO</div>
+            <div class="hand-cards" id="myHand">
+                <!-- Carte generate dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed-controls">
+        <button class="control-btn" onclick="playRandomCard()" id="playBtn">🎯 GIOCA CARTA</button>
+        <button class="control-btn" onclick="addBot()" id="addBotBtn">➕ BOT</button>
+        <button class="control-btn" onclick="newGame()">🔄 NUOVA</button>
+    </div>
+
+    <script>
+        // Inizializzazione Telegram Web App
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+        tg.MainButton.hide();
+
+        // Stato del gioco
+        const gameState = {
+            players: [
+                { name: "Tu", type: "human", score: 0 },
+                { name: "Bot 1", type: "bot", score: 0 },
+                { name: "Bot 2", type: "bot", score: 0 },
+                { name: "Bot 3", type: "bot", score: 0 }
+            ],
+            currentPlayer: 0,
+            currentTrick: [null, null, null, null],
+            leadingSuit: null,
+            round: 1,
+            myHand: [],
+            totalPlayers: 2, // Inizia con 2 giocatori
+            gamePhase: 'waiting'
+        };
+
+        // Mazzo di carte
+        const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+        const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+        // Inizializza il gioco
+        function initGame() {
+            createDeck();
+            updatePlayersDisplay();
+            updateDisplay();
+            showNotification('Partita iniziata! 👋');
+        }
+
+        // Crea e mischia il mazzo
+        function createDeck() {
+            let deck = [];
+            suits.forEach(suit => {
+                values.forEach(value => {
+                    deck.push({ suit, value });
+                });
+            });
+            
+            deck = shuffleArray(deck);
+            gameState.myHand = deck.slice(0, 13).sort(sortCards);
+            renderMyHand();
+        }
+
+        // Mischia array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Ordina le carte
+        function sortCards(a, b) {
+            const suitOrder = { 'spades': 0, 'hearts': 1, 'diamonds': 2, 'clubs': 3 };
+            return suitOrder[a.suit] - suitOrder[b.suit] || values.indexOf(a.value) - values.indexOf(b.value);
+        }
+
+        // Renderizza la mano del giocatore
+        function renderMyHand() {
+            const handContainer = document.getElementById('myHand');
+            handContainer.innerHTML = '';
+            
+            gameState.myHand.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card ${card.suit} ${gameState.currentPlayer === 0 ? 'playable' : ''}`;
+                cardElement.innerHTML = getCardSymbol(card.suit, card.value);
+                cardElement.onclick = () => playCard(index);
+                
+                if (gameState.currentPlayer !== 0) {
+                    cardElement.classList.add('disabled');
+                }
+                
+                handContainer.appendChild(cardElement);
+            });
+        }
+
+        // Ottiene il simbolo della carta
+        function getCardSymbol(suit, value) {
+            const suitSymbols = {
+                'hearts': '♥️',
+                'diamonds': '♦️', 
+                'clubs': '♣️',
+                'spades': '♠️'
+            };
+            return `${suitSymbols[suit]}${value}`;
+        }
+
+        // Gioca una carta
+        function playCard(cardIndex) {
+            if (gameState.currentPlayer !== 0 || gameState.myHand.length === 0) return;
+            
+            const card = gameState.myHand[cardIndex];
+            gameState.currentTrick[0] = card;
+            gameState.myHand.splice(cardIndex, 1);
+            
+            if (gameState.currentTrick.filter(c => c).length === 1) {
+                gameState.leadingSuit = card.suit;
+            }
+            
+            // Simula mosse bot
+            simulateBotMoves();
+            updateDisplay();
+            
+            // Completa il trick dopo un delay
+            setTimeout(completeTrick, 1500);
+        }
+
+        // Gioca una carta random
+        function playRandomCard() {
+            if (gameState.currentPlayer !== 0 || gameState.myHand.length === 0) return;
+            
+            const playableCards = gameState.myHand;
+            if (playableCards.length > 0) {
+                const randomIndex = Math.floor(Math.random() * playableCards.length);
+                playCard(randomIndex);
+            }
+        }
+
+        // Simula mosse dei bot
+        function simulateBotMoves() {
+            for (let i = 1; i < gameState.totalPlayers; i++) {
+                if (!gameState.currentTrick[i]) {
+                    const randomCard = {
+                        suit: suits[Math.floor(Math.random() * suits.length)],
+                        value: values[Math.floor(Math.random() * values.length)]
+                    };
+                    gameState.currentTrick[i] = randomCard;
+                }
+            }
+        }
+
+        // Completa il trick
+        function completeTrick() {
+            showNotification(`Mano ${gameState.round} completata! ✅`);
+            gameState.currentTrick = [null, null, null, null];
+            gameState.leadingSuit = null;
+            gameState.round++;
+            
+            // Cambia turno (semplificato)
+            gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.totalPlayers;
+            
+            if (gameState.round > 13) {
+                endRound();
+            } else {
+                updateDisplay();
+            }
+        }
+
+        // Fine round
+        function endRound() {
+            showNotification('Round completato! 🏆');
+            // Calcola punti semplificato
+            gameState.players.forEach((player, index) => {
+                player.score += Math.floor(Math.random() * 5);
+            });
+            
+            gameState.round = 1;
+            gameState.currentPlayer = Math.floor(Math.random() * gameState.totalPlayers);
+            createDeck();
+            updateDisplay();
+        }
+
+        // Aggiunge un bot
+        function addBot() {
+            if (gameState.totalPlayers < 4) {
+                gameState.totalPlayers++;
+                updatePlayersDisplay();
+                showNotification(`Bot ${gameState.totalPlayers - 1} aggiunto! 🤖`);
+                updateDisplay();
+            } else {
+                showNotification('Massimo 4 giocatori raggiunto! ❌');
+            }
+        }
+
+        // Nuova partita
+        function newGame() {
+            gameState.players.forEach(player => player.score = 0);
+            gameState.currentPlayer = 0;
+            gameState.currentTrick = [null, null, null, null];
+            gameState.leadingSuit = null;
+            gameState.round = 1;
+            gameState.totalPlayers = 2;
+            
+            updatePlayersDisplay();
+            createDeck();
+            updateDisplay();
+            showNotification('Nuova partita iniziata! 🎮');
+        }
+
+        // Aggiorna display giocatori
+        function updatePlayersDisplay() {
+            const playersGrid = document.getElementById('playersGrid');
+            playersGrid.innerHTML = '';
+            
+            for (let i = 0; i < gameState.totalPlayers; i++) {
+                const player = gameState.players[i];
+                const playerCard = document.createElement('div');
+                playerCard.className = `player-card ${i === gameState.currentPlayer ? 'current' : ''}`;
+                
+                playerCard.innerHTML = `
+                    <span>${player.name}</span>
+                    <span class="player-badge ${player.type === 'bot' ? 'bot' : (i === gameState.currentPlayer ? '' : 'waiting')}">
+                        ${player.type === 'bot' ? '🤖' : (i === gameState.currentPlayer ? '🎯' : '⏳')}
+                    </span>
+                `;
+                
+                playersGrid.appendChild(playerCard);
+            }
+        }
+
+        // Mostra notifica
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'chat-notification animate-in';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 2000);
+        }
+
+        // Aggiorna tutto il display
+        function updateDisplay() {
+            // Aggiorna stato
+            document.getElementById('gameState').textContent = 
+                gameState.currentPlayer === 0 ? 'Tuo turno!' : 'Turno bot';
+            document.getElementById('currentTurn').textContent = gameState.players[gameState.currentPlayer].name;
+            document.getElementById('currentTrick').textContent = `${gameState.round}/13`;
+            document.getElementById('currentSuit').textContent = gameState.leadingSuit ? 
+                getCardSymbol(gameState.leadingSuit, '') : '-';
+
+            // Aggiorna tavolo
+            const trickArea = document.getElementById('trickArea');
+            trickArea.innerHTML = '';
+            
+            for (let i = 0; i < gameState.totalPlayers; i++) {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'played-card';
+                
+                if (gameState.currentTrick[i]) {
+                    const card = gameState.currentTrick[i];
+                    cardElement.innerHTML = getCardSymbol(card.suit, card.value);
+                    cardElement.style.background = 'white';
+                    cardElement.style.color = card.suit === 'hearts' || card.suit === 'diamonds' ? '#e74c3c' : '#2c3e50';
+                } else {
+                    cardElement.style.background = 'rgba(255,255,255,0.1)';
+                    cardElement.innerHTML = '?';
+                }
+                
+                trickArea.appendChild(cardElement);
+            }
+
+            // Aggiorna punteggi
+            document.getElementById('scorePlayer0').textContent = gameState.players[0].score;
+            document.getElementById('scorePlayer1').textContent = gameState.players[1].score;
+            document.getElementById('scorePlayer2').textContent = gameState.players[2].score;
+            document.getElementById('scorePlayer3').textContent = gameState.players[3].score;
+
+            // Aggiorna nomi giocatori
+            document.getElementById('player1Name').textContent = gameState.players[1].name;
+            document.getElementById('player2Name').textContent = gameState.players[2].name;
+            document.getElementById('player3Name').textContent = gameState.players[3].name;
+
+            // Aggiorna controlli
+            document.getElementById('playBtn').disabled = gameState.currentPlayer !== 0 || gameState.myHand.length === 0;
+            document.getElementById('addBotBtn').disabled = gameState.totalPlayers >= 4;
+
+            // Aggiorna giocatori
+            updatePlayersDisplay();
+            renderMyHand();
+        }
+
+        // Inizializza al caricamento
+        window.onload = initGame;
+    </script>
+</body>
+</html>
