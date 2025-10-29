@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Hearts - Telegram</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -17,108 +17,141 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
             color: white;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
             padding: 0;
-            overflow-x: hidden;
         }
 
-        .tg-container {
-            max-width: 100%;
-            padding: 12px;
+        .game-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
         }
 
         .header {
             text-align: center;
-            padding: 15px 10px;
+            padding: 10px;
             background: rgba(255,255,255,0.1);
             border-radius: 12px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             backdrop-filter: blur(10px);
+            flex-shrink: 0;
         }
 
         .header h1 {
-            font-size: 1.4em;
-            margin-bottom: 4px;
+            font-size: 1.3em;
+            margin-bottom: 2px;
         }
 
         .header p {
-            font-size: 0.85em;
+            font-size: 0.8em;
             opacity: 0.8;
         }
 
-        .game-status {
+        .game-board {
+            flex: 1;
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 120px 1fr;
+            grid-template-columns: 1fr 120px 1fr;
             gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        .status-card {
-            background: rgba(255,255,255,0.15);
-            padding: 12px 8px;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 0.9em;
-        }
-
-        .status-card h3 {
-            font-size: 0.8em;
-            opacity: 0.9;
-            margin-bottom: 4px;
-        }
-
-        .table-container {
-            background: rgba(0, 0, 0, 0.25);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             position: relative;
-            min-height: 200px;
         }
 
-        .trick-area {
+        /* Posizioni giocatori */
+        .player-top {
+            grid-column: 2;
+            grid-row: 1;
             display: flex;
             justify-content: center;
-            align-items: center;
-            gap: 6px;
-            margin: 20px 0;
-            flex-wrap: wrap;
+            align-items: flex-end;
         }
 
-        .played-card {
-            width: 50px;
-            height: 70px;
-            background: white;
+        .player-left {
+            grid-column: 1;
+            grid-row: 2;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .player-right {
+            grid-column: 3;
+            grid-row: 2;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .player-bottom {
+            grid-column: 2;
+            grid-row: 3;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* Centro con mazzo e carte giocate */
+        .center-area {
+            grid-column: 2;
+            grid-row: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .deck-pile {
+            width: 60px;
+            height: 84px;
+            background: rgba(255,255,255,0.2);
             border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            font-weight: bold;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            position: relative;
+            font-size: 24px;
+            border: 2px dashed rgba(255,255,255,0.3);
         }
 
-        .players-grid {
+        .trick-cards {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-top: 15px;
+            grid-template-rows: 1fr 1fr;
+            gap: 4px;
+            width: 80px;
+            height: 80px;
         }
 
-        .player-card {
-            background: rgba(255,255,255,0.1);
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.85em;
+        .trick-card {
+            width: 35px;
+            height: 49px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 4px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
-        .player-card.current {
+        /* Stili giocatori */
+        .player {
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 8px;
+            min-width: 80px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            border: 2px solid transparent;
+        }
+
+        .player.current {
             background: rgba(76, 175, 80, 0.3);
-            border: 1px solid #4CAF50;
+            border-color: #4CAF50;
         }
 
         .player-badge {
@@ -126,6 +159,8 @@
             padding: 2px 6px;
             border-radius: 8px;
             background: #4CAF50;
+            margin-top: 4px;
+            display: block;
         }
 
         .player-badge.waiting {
@@ -136,46 +171,33 @@
             background: #9c27b0;
         }
 
+        /* Mano del giocatore (in basso) */
         .my-hand {
+            height: 100px;
             background: rgba(255,255,255,0.1);
             border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 70px; /* Spazio per i bottoni fissi */
-        }
-
-        .hand-title {
-            font-size: 1em;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .hand-cards {
-            display: flex;
-            gap: 4px;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            padding: 5px 0;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .hand-cards::-webkit-scrollbar {
-            display: none;
-        }
-
-        .card {
-            flex: 0 0 auto;
-            width: 45px;
-            height: 63px;
-            background: white;
-            border-radius: 5px;
+            padding: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            gap: 3px;
+            flex-shrink: 0;
+        }
+
+        .card {
+            width: 40px;
+            height: 56px;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            flex-shrink: 0;
         }
 
         .card.hearts, .card.diamonds {
@@ -189,37 +211,33 @@
         .card.disabled {
             opacity: 0.4;
             cursor: not-allowed;
-            transform: none;
         }
 
         .card.playable {
             border: 2px solid #4CAF50;
+            transform: translateY(-5px);
         }
 
-        .fixed-controls {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(26, 35, 126, 0.95);
-            padding: 12px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            display: flex;
+        /* Pannello controllo */
+        .control-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 8px;
-            backdrop-filter: blur(10px);
+            margin-top: 8px;
+            flex-shrink: 0;
         }
 
         .control-btn {
-            flex: 1;
             background: rgba(255,255,255,0.2);
             border: none;
             color: white;
             padding: 12px 8px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 0.85em;
+            font-size: 0.8em;
             transition: all 0.2s ease;
             min-height: 44px;
+            backdrop-filter: blur(5px);
         }
 
         .control-btn:active {
@@ -233,147 +251,180 @@
             transform: none;
         }
 
-        .scores-panel {
-            background: rgba(255,255,255,0.1);
+        /* Info partita */
+        .game-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .info-card {
+            background: rgba(255,255,255,0.15);
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.8em;
+        }
+
+        .info-card h3 {
+            font-size: 0.7em;
+            opacity: 0.9;
+            margin-bottom: 2px;
+        }
+
+        /* Punteggi */
+        .score-badge {
+            font-size: 0.7em;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
             border-radius: 10px;
-            padding: 12px;
-            margin-top: 10px;
-        }
-
-        .score-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            font-size: 0.85em;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .score-item:last-child {
-            border-bottom: none;
+            margin-left: 4px;
         }
 
         .leader {
             color: #f1c40f;
-            font-weight: bold;
         }
 
-        .chat-notification {
-            position: fixed;
-            top: 10px;
+        /* Notifiche */
+        .notification {
+            position: absolute;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.8);
             color: white;
-            padding: 8px 12px;
+            padding: 10px 16px;
             border-radius: 20px;
             font-size: 0.8em;
-            z-index: 1000;
+            z-index: 100;
             backdrop-filter: blur(10px);
+            animation: fadeInOut 2s ease-in-out;
         }
 
-        /* Ottimizzazioni per schermi piccoli */
-        @media (max-width: 320px) {
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20%, 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* Ottimizzazioni mobile */
+        @media (max-height: 700px) {
+            .game-board {
+                grid-template-rows: 1fr 100px 1fr;
+            }
+            
+            .my-hand {
+                height: 80px;
+            }
+            
             .card {
-                width: 40px;
-                height: 56px;
-                font-size: 12px;
-            }
-            
-            .played-card {
-                width: 45px;
-                height: 63px;
-                font-size: 14px;
-            }
-            
-            .status-card {
-                padding: 10px 6px;
-                font-size: 0.8em;
+                width: 35px;
+                height: 49px;
+                font-size: 10px;
             }
         }
 
-        /* Animazioni */
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animate-in {
-            animation: slideIn 0.3s ease;
+        @media (max-height: 600px) {
+            .game-board {
+                grid-template-rows: 1fr 80px 1fr;
+            }
+            
+            .my-hand {
+                height: 70px;
+            }
+            
+            .card {
+                width: 32px;
+                height: 45px;
+                font-size: 9px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="tg-container">
+    <div class="game-container">
         <div class="header">
             <h1>♥️♠️ HEARTS ♣️♦️</h1>
             <p>2-4 Giocatori • Multiplayer</p>
         </div>
 
-        <div class="game-status">
-            <div class="status-card">
-                <h3>STATO</h3>
-                <p id="gameState">In attesa</p>
-            </div>
-            <div class="status-card">
+        <div class="game-info">
+            <div class="info-card">
                 <h3>TURNO</h3>
-                <p id="currentTurn">-</p>
+                <p id="currentTurn">Tu</p>
             </div>
-            <div class="status-card">
+            <div class="info-card">
                 <h3>MANO</h3>
                 <p id="currentTrick">1/13</p>
             </div>
-            <div class="status-card">
+            <div class="info-card">
                 <h3>SEME</h3>
                 <p id="currentSuit">-</p>
             </div>
-        </div>
-
-        <div class="table-container">
-            <h3 style="font-size: 0.9em; margin-bottom: 10px;">🃏 TAVOLO DI GIOCO</h3>
-            
-            <div class="trick-area" id="trickArea">
-                <div class="played-card" style="background: rgba(255,255,255,0.1);">?</div>
-                <div class="played-card" style="background: rgba(255,255,255,0.1);">?</div>
-                <div class="played-card" style="background: rgba(255,255,255,0.1);">?</div>
-                <div class="played-card" style="background: rgba(255,255,255,0.1);">?</div>
-            </div>
-
-            <div class="players-grid" id="playersGrid">
-                <!-- Giocatori dinamici -->
-            </div>
-
-            <div class="scores-panel">
-                <div class="score-item">
-                    <span>Tu</span>
-                    <span id="scorePlayer0" class="leader">0</span>
-                </div>
-                <div class="score-item">
-                    <span id="player1Name">Bot 1</span>
-                    <span id="scorePlayer1">0</span>
-                </div>
-                <div class="score-item">
-                    <span id="player2Name">Bot 2</span>
-                    <span id="scorePlayer2">0</span>
-                </div>
-                <div class="score-item">
-                    <span id="player3Name">Bot 3</span>
-                    <span id="scorePlayer3">0</span>
-                </div>
+            <div class="info-card">
+                <h3>GIOCATORI</h3>
+                <p id="playerCount">2/4</p>
             </div>
         </div>
 
-        <div class="my-hand">
-            <div class="hand-title">🎴 LA TUA MANO</div>
-            <div class="hand-cards" id="myHand">
-                <!-- Carte generate dinamicamente -->
+        <div class="game-board">
+            <!-- Giocatore TOP -->
+            <div class="player-top">
+                <div class="player" id="playerTop">
+                    <div>Bot 1</div>
+                    <span class="player-badge bot">🤖 0</span>
+                </div>
+            </div>
+
+            <!-- Giocatore LEFT -->
+            <div class="player-left">
+                <div class="player" id="playerLeft">
+                    <div>Bot 2</div>
+                    <span class="player-badge bot">🤖 0</span>
+                </div>
+            </div>
+
+            <!-- Centro con mazzo e carte -->
+            <div class="center-area">
+                <div class="deck-pile" id="deckPile">🃏</div>
+                <div class="trick-cards" id="trickCards">
+                    <div class="trick-card"></div>
+                    <div class="trick-card"></div>
+                    <div class="trick-card"></div>
+                    <div class="trick-card"></div>
+                </div>
+            </div>
+
+            <!-- Giocatore RIGHT -->
+            <div class="player-right">
+                <div class="player" id="playerRight">
+                    <div>Bot 3</div>
+                    <span class="player-badge bot">🤖 0</span>
+                </div>
+            </div>
+
+            <!-- Giocatore BOTTOM (tu) -->
+            <div class="player-bottom">
+                <div class="player current" id="playerBottom">
+                    <div>Tu</div>
+                    <span class="player-badge">🎯 0</span>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="fixed-controls">
-        <button class="control-btn" onclick="playRandomCard()" id="playBtn">🎯 GIOCA CARTA</button>
-        <button class="control-btn" onclick="addBot()" id="addBotBtn">➕ BOT</button>
-        <button class="control-btn" onclick="newGame()">🔄 NUOVA</button>
+        <!-- Mano del giocatore -->
+        <div class="my-hand" id="myHand">
+            <!-- Carte generate dinamicamente -->
+        </div>
+
+        <!-- Controlli -->
+        <div class="control-panel">
+            <button class="control-btn" onclick="playRandomCard()" id="playBtn">🎯 GIOCA CARTA</button>
+            <button class="control-btn" onclick="addBot()" id="addBotBtn">➕ AGGIUNGI BOT</button>
+            <button class="control-btn" onclick="newGame()">🔄 NUOVA PARTITA</button>
+            <button class="control-btn" onclick="simulateRound()">⚡ SIMULA MANO</button>
+        </div>
     </div>
 
     <script>
@@ -381,23 +432,22 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
         tg.enableClosingConfirmation();
-        tg.MainButton.hide();
 
         // Stato del gioco
         const gameState = {
             players: [
-                { name: "Tu", type: "human", score: 0 },
-                { name: "Bot 1", type: "bot", score: 0 },
-                { name: "Bot 2", type: "bot", score: 0 },
-                { name: "Bot 3", type: "bot", score: 0 }
+                { name: "Tu", type: "human", score: 0, position: "bottom" },
+                { name: "Bot 1", type: "bot", score: 0, position: "top" },
+                { name: "Bot 2", type: "bot", score: 0, position: "left" },
+                { name: "Bot 3", type: "bot", score: 0, position: "right" }
             ],
             currentPlayer: 0,
             currentTrick: [null, null, null, null],
             leadingSuit: null,
             round: 1,
             myHand: [],
-            totalPlayers: 2, // Inizia con 2 giocatori
-            gamePhase: 'waiting'
+            totalPlayers: 2,
+            gamePhase: 'playing'
         };
 
         // Mazzo di carte
@@ -483,11 +533,8 @@
                 gameState.leadingSuit = card.suit;
             }
             
-            // Simula mosse bot
             simulateBotMoves();
             updateDisplay();
-            
-            // Completa il trick dopo un delay
             setTimeout(completeTrick, 1500);
         }
 
@@ -522,7 +569,6 @@
             gameState.leadingSuit = null;
             gameState.round++;
             
-            // Cambia turno (semplificato)
             gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.totalPlayers;
             
             if (gameState.round > 13) {
@@ -532,10 +578,16 @@
             }
         }
 
+        // Simula un round completo
+        function simulateRound() {
+            if (gameState.currentPlayer === 0) {
+                playRandomCard();
+            }
+        }
+
         // Fine round
         function endRound() {
             showNotification('Round completato! 🏆');
-            // Calcola punti semplificato
             gameState.players.forEach((player, index) => {
                 player.score += Math.floor(Math.random() * 5);
             });
@@ -551,10 +603,10 @@
             if (gameState.totalPlayers < 4) {
                 gameState.totalPlayers++;
                 updatePlayersDisplay();
-                showNotification(`Bot ${gameState.totalPlayers - 1} aggiunto! 🤖`);
+                showNotification(`Bot ${gameState.totalPlayers} aggiunto! 🤖`);
                 updateDisplay();
             } else {
-                showNotification('Massimo 4 giocatori raggiunto! ❌');
+                showNotification('Massimo 4 giocatori! ❌');
             }
         }
 
@@ -570,36 +622,35 @@
             updatePlayersDisplay();
             createDeck();
             updateDisplay();
-            showNotification('Nuova partita iniziata! 🎮');
+            showNotification('Nuova partita! 🎮');
         }
 
         // Aggiorna display giocatori
         function updatePlayersDisplay() {
-            const playersGrid = document.getElementById('playersGrid');
-            playersGrid.innerHTML = '';
-            
-            for (let i = 0; i < gameState.totalPlayers; i++) {
-                const player = gameState.players[i];
-                const playerCard = document.createElement('div');
-                playerCard.className = `player-card ${i === gameState.currentPlayer ? 'current' : ''}`;
-                
-                playerCard.innerHTML = `
-                    <span>${player.name}</span>
-                    <span class="player-badge ${player.type === 'bot' ? 'bot' : (i === gameState.currentPlayer ? '' : 'waiting')}">
-                        ${player.type === 'bot' ? '🤖' : (i === gameState.currentPlayer ? '🎯' : '⏳')}
-                    </span>
-                `;
-                
-                playersGrid.appendChild(playerCard);
-            }
+            // Aggiorna visibilità giocatori
+            document.getElementById('playerTop').style.display = gameState.totalPlayers >= 2 ? 'block' : 'none';
+            document.getElementById('playerLeft').style.display = gameState.totalPlayers >= 3 ? 'block' : 'none';
+            document.getElementById('playerRight').style.display = gameState.totalPlayers >= 4 ? 'block' : 'none';
+
+            // Aggiorna punteggi e stato
+            gameState.players.forEach((player, index) => {
+                const playerElement = document.getElementById(`player${player.position.charAt(0).toUpperCase() + player.position.slice(1)}`);
+                if (playerElement) {
+                    const badge = playerElement.querySelector('.player-badge');
+                    badge.textContent = player.type === 'bot' ? `🤖 ${player.score}` : `🎯 ${player.score}`;
+                    badge.className = `player-badge ${player.type === 'bot' ? 'bot' : ''} ${index === gameState.currentPlayer ? '' : 'waiting'}`;
+                    
+                    playerElement.className = `player ${index === gameState.currentPlayer ? 'current' : ''}`;
+                }
+            });
         }
 
         // Mostra notifica
         function showNotification(message) {
             const notification = document.createElement('div');
-            notification.className = 'chat-notification animate-in';
+            notification.className = 'notification';
             notification.textContent = message;
-            document.body.appendChild(notification);
+            document.querySelector('.game-board').appendChild(notification);
             
             setTimeout(() => {
                 notification.remove();
@@ -608,51 +659,43 @@
 
         // Aggiorna tutto il display
         function updateDisplay() {
-            // Aggiorna stato
-            document.getElementById('gameState').textContent = 
-                gameState.currentPlayer === 0 ? 'Tuo turno!' : 'Turno bot';
+            // Aggiorna info
             document.getElementById('currentTurn').textContent = gameState.players[gameState.currentPlayer].name;
             document.getElementById('currentTrick').textContent = `${gameState.round}/13`;
             document.getElementById('currentSuit').textContent = gameState.leadingSuit ? 
                 getCardSymbol(gameState.leadingSuit, '') : '-';
+            document.getElementById('playerCount').textContent = `${gameState.totalPlayers}/4`;
 
-            // Aggiorna tavolo
-            const trickArea = document.getElementById('trickArea');
-            trickArea.innerHTML = '';
+            // Aggiorna carte nel centro
+            const trickCards = document.getElementById('trickCards');
+            trickCards.innerHTML = '';
             
-            for (let i = 0; i < gameState.totalPlayers; i++) {
+            // Posizioni delle carte nel trick (in ordine: top, right, bottom, left)
+            const positions = [1, 3, 0, 2]; // Mappa le posizioni
+            
+            for (let i = 0; i < 4; i++) {
                 const cardElement = document.createElement('div');
-                cardElement.className = 'played-card';
+                cardElement.className = 'trick-card';
                 
-                if (gameState.currentTrick[i]) {
-                    const card = gameState.currentTrick[i];
+                const trickIndex = positions[i];
+                if (gameState.currentTrick[trickIndex]) {
+                    const card = gameState.currentTrick[trickIndex];
                     cardElement.innerHTML = getCardSymbol(card.suit, card.value);
                     cardElement.style.background = 'white';
                     cardElement.style.color = card.suit === 'hearts' || card.suit === 'diamonds' ? '#e74c3c' : '#2c3e50';
-                } else {
-                    cardElement.style.background = 'rgba(255,255,255,0.1)';
-                    cardElement.innerHTML = '?';
                 }
                 
-                trickArea.appendChild(cardElement);
+                trickCards.appendChild(cardElement);
             }
 
-            // Aggiorna punteggi
-            document.getElementById('scorePlayer0').textContent = gameState.players[0].score;
-            document.getElementById('scorePlayer1').textContent = gameState.players[1].score;
-            document.getElementById('scorePlayer2').textContent = gameState.players[2].score;
-            document.getElementById('scorePlayer3').textContent = gameState.players[3].score;
-
-            // Aggiorna nomi giocatori
-            document.getElementById('player1Name').textContent = gameState.players[1].name;
-            document.getElementById('player2Name').textContent = gameState.players[2].name;
-            document.getElementById('player3Name').textContent = gameState.players[3].name;
+            // Aggiorna mazzo
+            document.getElementById('deckPile').style.display = gameState.round === 1 ? 'flex' : 'none';
 
             // Aggiorna controlli
             document.getElementById('playBtn').disabled = gameState.currentPlayer !== 0 || gameState.myHand.length === 0;
             document.getElementById('addBotBtn').disabled = gameState.totalPlayers >= 4;
 
-            // Aggiorna giocatori
+            // Aggiorna giocatori e mano
             updatePlayersDisplay();
             renderMyHand();
         }
