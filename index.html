@@ -87,12 +87,12 @@
             background: rgba(0, 0, 0, 0.2);
             border-radius: 8px;
             margin: 0 5px;
-            min-height: 170px; /* Aumentata del 70% da 100px */
+            min-height: 300px; /* Aumentato del 100% */
             overflow: hidden;
         }
         
         .bottom-player {
-            height: 200px; /* Aumentata per far stare tutte le carte visibili */
+            height: 255px; /* Aumentato del 30% */
             background: rgba(0, 0, 0, 0.3);
             border-radius: 8px;
             padding: 8px;
@@ -149,7 +149,6 @@
             overflow-y: auto;
             padding: 5px 0;
             align-content: flex-start;
-            max-height: 180px; /* Altezza massima per contenere tutte le carte */
         }
         
         .player-card {
@@ -443,16 +442,16 @@
         };
         
         // Stato del gioco - ORDINE CORRETTO IN SENSO ORARIO:
-        // 0: Giocatore umano (basso)
-        // 1: Bot 1 (alto)
-        // 2: Bot 2 (destra)
+        // 0: Bot 1 (alto)
+        // 1: Bot 2 (destra)
+        // 2: Giocatore umano (basso)
         // 3: Bot 3 (sinistra)
         let gameState = {
             deck: [],
             players: [
-                { hand: [], score: 0, isHuman: true, name: 'Tu' },
                 { hand: [], score: 0, isHuman: false, name: 'Bot 1' },
                 { hand: [], score: 0, isHuman: false, name: 'Bot 2' },
+                { hand: [], score: 0, isHuman: true, name: 'Tu' },
                 { hand: [], score: 0, isHuman: false, name: 'Bot 3' }
             ],
             currentPlayer: 0,
@@ -486,8 +485,9 @@
             setupEventListeners();
             
             // Determina un giocatore casuale con cui scambiare le carte
-            gameState.randomPassTarget = Math.floor(Math.random() * 3) + 1;
-            const targetNames = {1: "Bot 1", 2: "Bot 2", 3: "Bot 3"};
+            let possibleTargets = [0, 1, 3]; // Non può scambiare con sé stesso (2)
+            gameState.randomPassTarget = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
+            const targetNames = {0: "Bot 1", 1: "Bot 2", 3: "Bot 3"};
             
             statusEl.textContent = `Seleziona 3 carte da scambiare con ${targetNames[gameState.randomPassTarget]}`;
             enableCardSelection(true);
@@ -527,17 +527,17 @@
         }
         
         function updateUI() {
-            // Aggiorna la mano del giocatore
+            // Aggiorna la mano del giocatore (indice 2)
             playerHandEl.innerHTML = '';
-            gameState.players[0].hand.forEach((card, index) => {
+            gameState.players[2].hand.forEach((card, index) => {
                 const cardEl = createCardElement(card, index);
                 playerHandEl.appendChild(cardEl);
             });
             
             // Aggiorna i punteggi
-            document.getElementById('player-score').textContent = gameState.players[0].score;
-            document.getElementById('score1').textContent = gameState.players[1].score;
-            document.getElementById('score2').textContent = gameState.players[2].score;
+            document.getElementById('player-score').textContent = gameState.players[2].score;
+            document.getElementById('score1').textContent = gameState.players[0].score;
+            document.getElementById('score2').textContent = gameState.players[1].score;
             document.getElementById('score3').textContent = gameState.players[3].score;
             
             // Aggiorna le carte degli avversari
@@ -582,17 +582,17 @@
             
             // Posizioni finali delle carte (ben distanziate)
             const positions = [
-                { endX: '0px', endY: '60px' },    // Giocatore 0 (Tu - basso)
-                { endX: '0px', endY: '-60px' },   // Giocatore 1 (Bot 1 - alto)
-                { endX: '60px', endY: '0px' },    // Giocatore 2 (Bot 2 - destra)
+                { endX: '0px', endY: '-60px' },   // Giocatore 0 (Bot 1 - alto)
+                { endX: '60px', endY: '0px' },    // Giocatore 1 (Bot 2 - destra)
+                { endX: '0px', endY: '60px' },    // Giocatore 2 (Giocatore - basso)
                 { endX: '-60px', endY: '0px' }    // Giocatore 3 (Bot 3 - sinistra)
             ];
             
             // Posizioni di partenza (dai bordi del tavolo)
             const startPositions = [
-                { startX: '0px', startY: '120px' },   // Giocatore 0 (Tu - dal basso)
-                { startX: '0px', startY: '-120px' },  // Giocatore 1 (Bot 1 - dall'alto)
-                { startX: '120px', startY: '0px' },   // Giocatore 2 (Bot 2 - da destra)
+                { startX: '0px', startY: '-120px' },  // Giocatore 0 (Bot 1 - dall'alto)
+                { startX: '120px', startY: '0px' },   // Giocatore 1 (Bot 2 - da destra)
+                { startX: '0px', startY: '120px' },   // Giocatore 2 (Giocatore - dal basso)
                 { startX: '-120px', startY: '0px' }   // Giocatore 3 (Bot 3 - da sinistra)
             ];
             
@@ -612,7 +612,7 @@
             // Bot 1 (alto) - carte orizzontali
             const cards1El = document.getElementById('cards1');
             cards1El.innerHTML = '';
-            const cardCount1 = gameState.players[1].hand.length;
+            const cardCount1 = gameState.players[0].hand.length;
             for (let j = 0; j < Math.min(cardCount1, 5); j++) {
                 const cardBack = document.createElement('div');
                 cardBack.className = 'card-back';
@@ -623,7 +623,7 @@
             // Bot 2 (destra) - carte verticali
             const cards2El = document.getElementById('cards2');
             cards2El.innerHTML = '';
-            const cardCount2 = gameState.players[2].hand.length;
+            const cardCount2 = gameState.players[1].hand.length;
             for (let j = 0; j < Math.min(cardCount2, 5); j++) {
                 const cardBack = document.createElement('div');
                 cardBack.className = 'card-back';
@@ -683,18 +683,18 @@
             }
             
             // Altrimenti, se è il turno del giocatore, gioca la carta immediatamente
-            if (gameState.currentPlayer !== 0) return;
+            if (gameState.currentPlayer !== 2) return;
             
-            const card = gameState.players[0].hand[index];
+            const card = gameState.players[2].hand[index];
             
             // Verifica se la mossa è valida
-            if (!isValidMove(0, card)) {
+            if (!isValidMove(2, card)) {
                 statusEl.textContent = 'Mossa non valida! Devi seguire il seme di uscita se possibile.';
                 return;
             }
             
             // Gioca la carta
-            playCard(0, card, index);
+            playCard(2, card, index);
         }
         
         function playCard(playerIndex, card, handIndex) {
@@ -721,12 +721,12 @@
             if (gameState.trick.length === 4) {
                 setTimeout(completeTrick, 1500);
             } else {
-                // Passa al prossimo giocatore in senso orario: 0->1->2->3->0
+                // Passa al prossimo giocatore nella sequenza: Bot1(0) -> Bot2(1) -> Giocatore(2) -> Bot3(3) -> Bot1(0)
                 gameState.currentPlayer = (gameState.currentPlayer + 1) % 4;
                 statusEl.textContent = `Turno di ${gameState.players[gameState.currentPlayer].name}`;
                 
                 // Se il prossimo giocatore è un bot, fai giocare il bot
-                if (gameState.currentPlayer !== 0) {
+                if (gameState.currentPlayer !== 2) {
                     setTimeout(playBotTurn, 1000);
                 } else {
                     enableCardSelection(true);
@@ -848,7 +848,7 @@
                     setTimeout(endRound, 1500);
                 } else {
                     // Continua con il prossimo trick
-                    if (gameState.currentPlayer !== 0) {
+                    if (gameState.currentPlayer !== 2) {
                         setTimeout(playBotTurn, 1500);
                     } else {
                         enableCardSelection(true);
@@ -876,11 +876,11 @@
             const sortedIndices = [...gameState.cardsToPass].sort((a, b) => b - a);
             
             // Prendi le carte selezionate
-            const cardsToPass = sortedIndices.map(index => gameState.players[0].hand[index]);
+            const cardsToPass = sortedIndices.map(index => gameState.players[2].hand[index]);
             
             // Rimuovi le carte dalla mano del giocatore
             for (let index of sortedIndices) {
-                gameState.players[0].hand.splice(index, 1);
+                gameState.players[2].hand.splice(index, 1);
             }
             
             // Aggiungi le carte al giocatore di destinazione
@@ -894,7 +894,9 @@
         }
         
         function passBotCards() {
-            for (let i = 1; i < 4; i++) {
+            for (let i = 0; i < 4; i++) {
+                if (i === 2) continue; // Salta il giocatore umano (già gestito)
+                
                 const bot = gameState.players[i];
                 let cardsToPass = [];
                 
@@ -950,7 +952,7 @@
             const startingPlayer = findPlayerWithTwoOfClubs();
             gameState.currentPlayer = startingPlayer;
             
-            if (startingPlayer === 0) {
+            if (startingPlayer === 2) {
                 statusEl.textContent = 'Sei il primo a giocare. Devi giocare il 2 di fiori.';
                 enableCardSelection(true);
             } else {
@@ -1015,9 +1017,10 @@
             // Prepara il prossimo round
             gameState.round++;
             
-            // Determina un nuovo giocatore casuale con cui scambiare
-            gameState.randomPassTarget = Math.floor(Math.random() * 3) + 1;
-            const targetNames = {1: "Bot 1", 2: "Bot 2", 3: "Bot 3"};
+            // Determina un nuovo giocatore casuale con cui scambiare (non il giocatore stesso)
+            let possibleTargets = [0, 1, 3]; // Non può scambiare con sé stesso (2)
+            gameState.randomPassTarget = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
+            const targetNames = {0: "Bot 1", 1: "Bot 2", 3: "Bot 3"};
             
             // Fase di scambio delle carte
             gameState.passingPhase = true;
@@ -1059,9 +1062,9 @@
             
             // Mostra il modal con i risultati
             document.getElementById('game-result').textContent = resultText;
-            document.getElementById('final-player-score').textContent = gameState.players[0].score;
-            document.getElementById('final-bot1-score').textContent = gameState.players[1].score;
-            document.getElementById('final-bot2-score').textContent = gameState.players[2].score;
+            document.getElementById('final-player-score').textContent = gameState.players[2].score;
+            document.getElementById('final-bot1-score').textContent = gameState.players[0].score;
+            document.getElementById('final-bot2-score').textContent = gameState.players[1].score;
             document.getElementById('final-bot3-score').textContent = gameState.players[3].score;
             
             gameOverModal.classList.remove('hidden');
@@ -1073,9 +1076,9 @@
             gameState = {
                 deck: [],
                 players: [
-                    { hand: [], score: 0, isHuman: true, name: 'Tu' },
                     { hand: [], score: 0, isHuman: false, name: 'Bot 1' },
                     { hand: [], score: 0, isHuman: false, name: 'Bot 2' },
+                    { hand: [], score: 0, isHuman: true, name: 'Tu' },
                     { hand: [], score: 0, isHuman: false, name: 'Bot 3' }
                 ],
                 currentPlayer: 0,
