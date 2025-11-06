@@ -485,38 +485,63 @@ function calculateTrickPoints(trick){
 }
 function passSelectedCards(){
   if(gameState.cardsToPass.length !== 3) return;
-  // remove selected (descending)
+  
+  // Get the cards to pass from player's hand
   const sorted = [...gameState.cardsToPass].sort((a,b)=>b-a);
-  const cards = sorted.map(i => gameState.players[2].hand[i]);
+  const cardsToPass = sorted.map(i => gameState.players[2].hand[i]);
+  
+  // Remove cards from player's hand
   for(const i of sorted) gameState.players[2].hand.splice(i,1);
-  gameState.players[gameState.randomPassTarget].hand.push(...cards);
+  
+  // Pass cards to target bot
+  gameState.players[gameState.randomPassTarget].hand.push(...cardsToPass);
+  
+  // Now handle bot-to-bot passing
   passBotCards();
-  // sort hands again
+  
+  // Sort all hands
   for(const p of gameState.players){
     p.hand.sort((a,b)=>{
       if(a.suit !== b.suit) return SUITS.indexOf(a.suit) - SUITS.indexOf(b.suit);
       return VALUES.indexOf(a.value) - VALUES.indexOf(b.value);
     });
   }
+  
   startGame();
 }
 function passBotCards(){
+  // Create a copy of bot hands to avoid modifying while iterating
+  const botHands = gameState.players.map(p => [...p.hand]);
+  
+  // For each bot, select 3 cards to pass
   for(let i=0;i<4;i++){
-    if(i===2) continue;
+    if(i===2) continue; // Skip human player
+    
     const bot = gameState.players[i];
-    const sorted = [...bot.hand].sort((a,b)=>{
-      const av = (a.suit==='spades' && a.value==='Q') ? 100 : (a.suit==='hearts' ? VALUES.indexOf(a.value)+50 : VALUES.indexOf(a.value));
-      const bv = (b.suit==='spades' && b.value==='Q') ? 100 : (b.suit==='hearts' ? VALUES.indexOf(b.value)+50 : VALUES.indexOf(b.value));
-      return bv - av;
+    // Sort cards by value (pass worst cards)
+    const sorted = [...botHands[i]].sort((a,b)=>{
+      const av = (a.suit==='spades' && a.value==='Q') ? 100 : 
+                 (a.suit==='hearts' ? VALUES.indexOf(a.value)+50 : 
+                 VALUES.indexOf(a.value));
+      const bv = (b.suit==='spades' && b.value==='Q') ? 100 : 
+                 (b.suit==='hearts' ? VALUES.indexOf(b.value)+50 : 
+                 VALUES.indexOf(b.value));
+      return bv - av; // Higher value = worse card
     });
+    
     const toPass = sorted.slice(0,3);
-    for(const c of toPass){
-      const idx = bot.hand.findIndex(x=>x.suit===c.suit && x.value===c.value);
+    
+    // Remove these cards from bot's actual hand
+    for(const card of toPass){
+      const idx = bot.hand.findIndex(c => c.suit === card.suit && c.value === card.value);
       if(idx !== -1) bot.hand.splice(idx,1);
     }
-    // random target != i
+    
+    // Choose random target (not self)
     let target;
     do { target = Math.floor(Math.random()*4); } while(target === i);
+    
+    // Add cards to target's hand
     gameState.players[target].hand.push(...toPass);
   }
 }
