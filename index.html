@@ -131,6 +131,11 @@ button:disabled{background:#7f8c8d;cursor:not-allowed}
     <div class="controls" role="group" aria-label="Controlli partita">
       <div class="left">
         <button id="pass-btn" disabled>Scambia 3 carte</button>
+        <select id="difficulty-select">
+          <option value="easy">Facile</option>
+          <option value="medium" selected>Medio</option>
+          <option value="hard">Difficile</option>
+        </select>
       </div>
       <div class="right">
         <button id="new-game-btn">Nuova partita</button>
@@ -166,7 +171,8 @@ let gameState = {
     {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Ovest'}
   ],
   currentPlayer:0, trick:[], leadSuit:null, heartsBroken:false,
-  round:0, cardsToPass:[], gameOver:false, passingPhase:true, randomPassTarget:0
+  round:0, cardsToPass:[], gameOver:false, passingPhase:true, randomPassTarget:0,
+  difficulty: 'medium'
 };
 const playerHandEl = document.getElementById('player-hand');
 const tableEl = document.getElementById('table');
@@ -175,6 +181,7 @@ const passBtn = document.getElementById('pass-btn');
 const newGameBtn = document.getElementById('new-game-btn');
 const gameOverModal = document.getElementById('game-over-modal');
 const closeModalBtn = document.getElementById('close-modal-btn');
+const difficultySelect = document.getElementById('difficulty-select');
 document.addEventListener('DOMContentLoaded', initGame);
 /* --- AUDIO: Glass-like sound with Web Audio API (no external files) --- */
 let audioCtx = null;
@@ -234,6 +241,7 @@ function initGame(){
   statusEl.textContent = `Seleziona 3 carte da scambiare con ${targetNames[gameState.randomPassTarget]}`;
   enableCardSelection(true);
   passBtn.disabled = true;
+  passBtn.style.display = 'block'; // Mostra il pulsante
   gameState.cardsToPass = [];
 }
 function createDeck(){
@@ -355,6 +363,9 @@ function setupEventListeners(){
   passBtn.addEventListener('click', passSelectedCards);
   newGameBtn.addEventListener('click', startNewGame);
   closeModalBtn.addEventListener('click', ()=>{ gameOverModal.style.display = 'none'; });
+  difficultySelect.addEventListener('change', (e) => {
+    gameState.difficulty = e.target.value;
+  });
 }
 function selectCard(index){
   // passing phase: mark to pass
@@ -414,20 +425,102 @@ function playBotTurn(){
     playCard(i, bot.hand[idx], idx);
     return;
   }
+  
   let selection;
+  const difficulty = gameState.difficulty;
+  
   if(gameState.trick.length === 0){
-    const safe = validMoves.filter(({card}) => card.suit !== 'hearts' && !(card.suit === 'spades' && card.value === 'Q'));
-    selection = safe.length ? safe[0] : validMoves[0];
-  } else {
-    const follow = validMoves.filter(({card}) => card.suit === gameState.leadSuit);
-    if(follow.length > 0){
-      const take = Math.random() > 0.7;
-      if(take) selection = follow.reduce((h,c)=> VALUES.indexOf(c.card.value) > VALUES.indexOf(h.card.value) ? c : h);
-      else selection = follow.reduce((l,c)=> VALUES.indexOf(c.card.value) < VALUES.indexOf(l.card.value) ? c : l);
+    // Leading a card
+    if(difficulty === 'easy') {
+      // Facile: gioca casualmente tra le carte sicure
+      const safe = validMoves.filter(({card}) => card.suit !== 'hearts' && !(card.suit === 'spades' && card.value === 'Q'));
+      selection = safe.length ? safe[Math.floor(Math.random()*safe.length)] : validMoves[Math.floor(Math.random()*validMoves.length)];
+    } else if(difficulty === 'medium') {
+      // Medio: evita cuori e Q di picche, preferisce carte basse
+      const safe = validMoves.filter(({card}) => card.suit !== 'hearts' && !(card.suit === 'spades' && card.value === 'Q'));
+      if(safe.length) {
+        selection = safe.reduce((lowest, current) => 
+          VALUES.indexOf(current.card.value) < VALUES.indexOf(lowest.card.value) ? current : lowest
+        );
+      } else {
+        selection = validMoves[Math.floor(Math.random()*validMoves.length)];
+      }
     } else {
-      selection = validMoves[Math.floor(Math.random()*validMoves.length)];
+      // Difficile: strategia avanzata
+      const safe = validMoves.filter(({card}) => card.suit !== 'hearts' && !(card.suit === 'spades' && card.value === 'Q'));
+      if(safe.length) {
+        // Preferisce carte medio-basse per conservare le carte alte
+        const sortedSafe = safe.sort((a,b) => VALUES.indexOf(a.card.value) - VALUES.indexOf(b.card.value));
+        selection = sortedSafe[Math.floor(sortedSafe.length * 0.3)]; // Prende una carta dal 30% più basso
+      } else {
+        // Se deve giocare cuori o Q di picche, gioca la più alta per forzare gli altri a prendere
+        selection = validMoves.reduce((highest, current) => 
+          VALUES.indexOf(current.card.value) > VALUES.indexOf(highest.card.value) ? current : highest
+        );
+      }
+    }
+  } else {
+    // Following suit or sloughing
+    const follow = validMoves.filter(({card}) => card.suit === gameState.leadSuit);
+    
+    if(follow.length > 0){
+      // Can follow suit
+      if(difficulty === 'easy') {
+        selection = follow[Math.floor(Math.random()*follow.length)];
+      } else if(difficulty === 'medium') {
+        const takeTrick = Math.random() > 0.6; // 40% di probabilità di prendere il trick
+        if(takeTrick) {
+          selection = follow.reduce((h,c)=> VALUES.indexOf(c.card.value) > VALUES.indexOf(h.card.value) ? c : h);
+        } else {
+          selection = follow.reduce((l,c)=> VALUES.indexOf(c.card.value) < VALUES.indexOf(l.card.value) ? c : l);
+        }
+      } else {
+        // Difficile: strategia intelligente
+        const currentTrickHigh = Math.max(...gameState.trick
+          .filter(p => p.card.suit === gameState.leadSuit)
+          .map(p => VALUES.indexOf(p.card.value)));
+        
+        const canWin = follow.some(c => VALUES.indexOf(c.card.value) > currentTrickHigh);
+        
+        if(canWin) {
+          // Se può vincere, valuta se conviene
+          const wouldTakePoints = calculateTrickPoints([...gameState.trick, {card: follow[0].card}]) > 0;
+          if(wouldTakePoints && Math.random() > 0.3) { // 70% di evitare punti
+            selection = follow.reduce((l,c)=> VALUES.indexOf(c.card.value) < VALUES.indexOf(l.card.value) ? c : l);
+          } else {
+            selection = follow.find(c => VALUES.indexOf(c.card.value) > currentTrickHigh) || follow[0];
+          }
+        } else {
+          // Non può vincere, gioca la carta più bassa
+          selection = follow.reduce((l,c)=> VALUES.indexOf(c.card.value) < VALUES.indexOf(l.card.value) ? c : l);
+        }
+      }
+    } else {
+      // Cannot follow suit - sloughing
+      if(difficulty === 'easy') {
+        selection = validMoves[Math.floor(Math.random()*validMoves.length)];
+      } else if(difficulty === 'medium') {
+        // Cerca di scaricare carte pericolose
+        const dangerous = validMoves.filter(({card}) => card.suit === 'hearts' || (card.suit === 'spades' && card.value === 'Q'));
+        selection = dangerous.length ? dangerous[0] : validMoves[Math.floor(Math.random()*validMoves.length)];
+      } else {
+        // Difficile: scarica strategicamente
+        const dangerous = validMoves.filter(({card}) => card.suit === 'hearts' || (card.suit === 'spades' && card.value === 'Q'));
+        if(dangerous.length) {
+          // Scarica la carta più pericolosa prima
+          selection = dangerous.reduce((mostDangerous, current) => {
+            const currentScore = current.card.suit === 'spades' && current.card.value === 'Q' ? 13 : 1;
+            const mostScore = mostDangerous.card.suit === 'spades' && mostDangerous.card.value === 'Q' ? 13 : 1;
+            return currentScore > mostScore ? current : mostDangerous;
+          });
+        } else {
+          // Se non ha carte pericolose, gioca una carta alta per forzare
+          selection = validMoves.reduce((h,c)=> VALUES.indexOf(c.card.value) > VALUES.indexOf(h.card.value) ? c : h);
+        }
+      }
     }
   }
+  
   playCard(i, selection.card, selection.index);
 }
 function isValidMove(playerIndex, card){
@@ -486,6 +579,9 @@ function calculateTrickPoints(trick){
 function passSelectedCards(){
   if(gameState.cardsToPass.length !== 3) return;
   
+  // Nascondi il pulsante dopo lo scambio
+  passBtn.style.display = 'none';
+  
   // Get the cards to pass from player's hand
   const sorted = [...gameState.cardsToPass].sort((a,b)=>b-a);
   const cardsToPass = sorted.map(i => gameState.players[2].hand[i]);
@@ -496,8 +592,13 @@ function passSelectedCards(){
   // Pass cards to target bot
   gameState.players[gameState.randomPassTarget].hand.push(...cardsToPass);
   
-  // Now handle bot-to-bot passing
-  passBotCards();
+  // Now handle bot-to-bot passing - CORRETTO: prima raccogli tutte le carte da passare, POI distribuiscile
+  const botPasses = passBotCards();
+  
+  // Applica tutti gli scambi dei bot
+  for(const pass of botPasses) {
+    gameState.players[pass.to].hand.push(...pass.cards);
+  }
   
   // Sort all hands
   for(const p of gameState.players){
@@ -507,11 +608,16 @@ function passSelectedCards(){
     });
   }
   
+  // Verifica che ogni giocatore abbia 13 carte
+  console.log("Carte dopo lo scambio:");
+  gameState.players.forEach((p, i) => {
+    console.log(`${p.name}: ${p.hand.length} carte`);
+  });
+  
   startGame();
 }
 function passBotCards(){
-  // Create a copy of bot hands to avoid modifying while iterating
-  const botHands = gameState.players.map(p => [...p.hand]);
+  const passes = [];
   
   // For each bot, select 3 cards to pass
   for(let i=0;i<4;i++){
@@ -519,7 +625,7 @@ function passBotCards(){
     
     const bot = gameState.players[i];
     // Sort cards by value (pass worst cards)
-    const sorted = [...botHands[i]].sort((a,b)=>{
+    const sorted = [...bot.hand].sort((a,b)=>{
       const av = (a.suit==='spades' && a.value==='Q') ? 100 : 
                  (a.suit==='hearts' ? VALUES.indexOf(a.value)+50 : 
                  VALUES.indexOf(a.value));
@@ -541,9 +647,11 @@ function passBotCards(){
     let target;
     do { target = Math.floor(Math.random()*4); } while(target === i);
     
-    // Add cards to target's hand
-    gameState.players[target].hand.push(...toPass);
+    // Store the pass to apply later
+    passes.push({from: i, to: target, cards: toPass});
   }
+  
+  return passes;
 }
 function startGame(){
   gameState.passingPhase = false;
@@ -562,7 +670,6 @@ function startGame(){
       enableCardSelection(false);
       setTimeout(()=>{
         const card = gameState.players[2].hand[idx];
-        // if we play a heart (shouldn't be), handle heartsBroken
         playCard(2, card, idx);
       }, 700);
       return;
@@ -572,7 +679,6 @@ function startGame(){
     enableCardSelection(false);
     setTimeout(playBotTurn, 900);
   }
-  passBtn.disabled = true;
 }
 function findPlayerWithTwoOfClubs(){
   for(let i=0;i<gameState.players.length;i++){
@@ -615,6 +721,7 @@ function endRound(){
   statusEl.textContent = `Seleziona 3 carte da scambiare con ${targetNames[gameState.randomPassTarget]}`;
   enableCardSelection(true);
   passBtn.disabled = true;
+  passBtn.style.display = 'block'; // Mostra di nuovo il pulsante per il nuovo round
   gameState.cardsToPass = [];
   // new deal
   createDeck(); shuffleDeck(); dealCards(); updateUI();
@@ -648,7 +755,8 @@ function startNewGame(){
       {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Ovest'}
     ],
     currentPlayer:0,trick:[],leadSuit:null,heartsBroken:false,
-    round:0,cardsToPass:[],gameOver:false,passingPhase:true,randomPassTarget:0
+    round:0,cardsToPass:[],gameOver:false,passingPhase:true,randomPassTarget:0,
+    difficulty: difficultySelect.value
   };
   gameOverModal.style.display = 'none';
   initGame();
