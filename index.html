@@ -26,12 +26,12 @@ body{
 .middle-area{display:flex;align-items:stretch;gap:8px;flex:1;min-height:0}
 .side-player{width:64px;display:flex;flex-direction:column;align-items:center;gap:6px}
 .table{flex:1;border-radius:12px;padding:12px;background:rgba(0,0,0,0.16);display:flex;justify-content:center;align-items:center;position:relative;min-height:220px;overflow:hidden}
-/* Bottom player hand - allow two rows */
+/* Bottom player hand */
 .bottom-player{background:var(--panel);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:8px}
 .player-label{font-size:13px;color:#eee;text-align:center}
 /* Opponent card-backs */
 .opponent-cards{display:flex;align-items:center;justify-content:center;gap:6px;pointer-events:none}
-.side-player .opponent-cards{flex-direction:column}
+.side-player .opponent-cards{flex-direction:column; margin-top: 10px;}
 .top-player .opponent-cards{flex-direction:row}
 .card-back{
   width:30px;height:42px;border-radius:4px;background:linear-gradient(180deg,#2c3e50,#26394a);
@@ -40,11 +40,13 @@ body{
 }
 .top-player .card-back{ margin:0 -20px }
 .side-player .card-back{ margin:-20px 0 }
-/* Player hand layout: up to two rows visible, no scroll */
+/* Player hand layout: single row with overlap, no scroll, centered */
 .player-hand{
-  display:flex; flex-wrap:wrap; gap:6px; align-content:flex-start;
-  max-height: none;
-  overflow: visible; padding:6px; -webkit-overflow-scrolling:touch;
+  display:flex; flex-direction:row; flex-wrap:nowrap; gap:0; align-items:flex-start; justify-content:center;
+  overflow:visible; padding:6px;
+}
+.player-hand .player-card + .player-card {
+  margin-left: calc(var(--card-w) * -0.6);
 }
 /* Card */
 .player-card, .center-card{
@@ -59,8 +61,8 @@ body{
 .card-bottom{transform:rotate(180deg)}
 .card-center{display:flex;align-items:center;justify-content:center;font-size:var(--center-size)}
 .card-center.small{font-size:calc(var(--center-size) - 2px)}
-/* big center for J Q K A (100% larger) */
-.card-center.big{font-size:calc(var(--center-size) * 2)}
+/* big center for J Q K A (reduced by 10%) */
+.card-center.big{font-size:calc(var(--center-size) * 1.8)}
 /* colors for suits */
 .hearts, .diamonds{ color:#c0392b }
 .clubs, .spades{ color:#1b2630 }
@@ -84,6 +86,9 @@ button:disabled{background:#7f8c8d;cursor:not-allowed}
   .card-back{width:24px;height:34px}
   .side-player{ width:48px }
   .table{ min-height:140px; padding:8px }
+  .player-hand .player-card + .player-card {
+    margin-left: calc(var(--card-w) * -0.65);
+  }
 }
 @media (min-width:900px){
   :root{ --card-w:52px; --card-h:78px; --center-size:20px }
@@ -99,19 +104,19 @@ button:disabled{background:#7f8c8d;cursor:not-allowed}
   <div class="game-container">
     <div class="table-area">
       <div class="top-player" id="opponent1">
-        <div class="player-label">Bot 1: <span id="score1">0</span></div>
+        <div class="player-label">Robottino Nord: <span id="score1">0</span></div>
         <div class="opponent-cards" id="cards1"></div>
       </div>
       <div class="middle-area">
         <div class="side-player" id="opponent3">
-          <div class="player-label">Bot 3: <span id="score3">0</span></div>
+          <div class="player-label">Robottino Ovest: <span id="score3">0</span></div>
           <div class="opponent-cards" id="cards3"></div>
         </div>
         <div class="table" id="table">
           <!-- carte giocate appariranno qui -->
         </div>
         <div class="side-player" id="opponent2">
-          <div class="player-label">Bot 2: <span id="score2">0</span></div>
+          <div class="player-label">Robottino Est: <span id="score2">0</span></div>
           <div class="opponent-cards" id="cards2"></div>
         </div>
       </div>
@@ -139,9 +144,9 @@ button:disabled{background:#7f8c8d;cursor:not-allowed}
       <table style="width:100%;color:#fff;margin-top:8px">
         <tr><th style="text-align:left">Giocatore</th><th style="text-align:right">Punti</th></tr>
         <tr><td>Tu</td><td style="text-align:right" id="final-player-score">0</td></tr>
-        <tr><td>Bot 1</td><td style="text-align:right" id="final-bot1-score">0</td></tr>
-        <tr><td>Bot 2</td><td style="text-align:right" id="final-bot2-score">0</td></tr>
-        <tr><td>Bot 3</td><td style="text-align:right" id="final-bot3-score">0</td></tr>
+        <tr><td>Robottino Nord</td><td style="text-align:right" id="final-bot1-score">0</td></tr>
+        <tr><td>Robottino Est</td><td style="text-align:right" id="final-bot2-score">0</td></tr>
+        <tr><td>Robottino Ovest</td><td style="text-align:right" id="final-bot3-score">0</td></tr>
       </table>
       <div style="display:flex;justify-content:center;margin-top:12px">
         <button id="close-modal-btn">Chiudi</button>
@@ -155,10 +160,10 @@ const VALUES = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 const SYMBOLS = { 'hearts':'♥','diamonds':'♦','clubs':'♣','spades':'♠' };
 let gameState = {
   deck:[], players:[
-    {hand:[],score:0,isHuman:false,name:'Bot 1'},
-    {hand:[],score:0,isHuman:false,name:'Bot 2'},
-    {hand:[],score:0,isHuman:true, name:'Tu'},
-    {hand:[],score:0,isHuman:false,name:'Bot 3'}
+    {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Nord'},
+    {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Est'},
+    {hand:[],roundScore:0,totalScore:0,isHuman:true, name:'Tu'},
+    {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Ovest'}
   ],
   currentPlayer:0, trick:[], leadSuit:null, heartsBroken:false,
   round:0, cardsToPass:[], gameOver:false, passingPhase:true, randomPassTarget:0
@@ -225,7 +230,7 @@ function initGame(){
   setupEventListeners();
   let possibleTargets = [0,1,3];
   gameState.randomPassTarget = possibleTargets[Math.floor(Math.random()*possibleTargets.length)];
-  const targetNames = {0:"Bot 1",1:"Bot 2",3:"Bot 3"};
+  const targetNames = {0:"Robottino Nord",1:"Robottino Est",3:"Robottino Ovest"};
   statusEl.textContent = `Seleziona 3 carte da scambiare con ${targetNames[gameState.randomPassTarget]}`;
   enableCardSelection(true);
   passBtn.disabled = true;
@@ -259,10 +264,10 @@ function updateUI(){
     playerHandEl.appendChild(cardEl);
   });
   // scores
-  document.getElementById('player-score').textContent = gameState.players[2].score;
-  document.getElementById('score1').textContent = gameState.players[0].score;
-  document.getElementById('score2').textContent = gameState.players[1].score;
-  document.getElementById('score3').textContent = gameState.players[3].score;
+  document.getElementById('player-score').textContent = gameState.players[2].totalScore;
+  document.getElementById('score1').textContent = gameState.players[0].totalScore;
+  document.getElementById('score2').textContent = gameState.players[1].totalScore;
+  document.getElementById('score3').textContent = gameState.players[3].totalScore;
   updateOpponentCards();
   updateTable();
 }
@@ -308,36 +313,33 @@ function createTableCardElement(card, playerIndex){
   return el;
 }
 function updateOpponentCards(){
-  // Top Bot 1
+  // Top
   const cards1El = document.getElementById('cards1');
   cards1El.innerHTML = '';
   const n1 = gameState.players[0].hand.length;
   for(let i=0;i<n1;i++){
     const cb = document.createElement('div');
     cb.className = 'card-back';
-    cb.style.transform = `translateY(${i * 0.5}px)`;
     if(i===0) cb.textContent = n1;
     cards1El.appendChild(cb);
   }
-  // Right Bot 2
+  // Right
   const cards2El = document.getElementById('cards2');
   cards2El.innerHTML = '';
   const n2 = gameState.players[1].hand.length;
   for(let i=0;i<n2;i++){
     const cb = document.createElement('div');
     cb.className = 'card-back';
-    cb.style.transform = `translateX(-${i * 0.5}px)`;
     if(i===0) cb.textContent = n2;
     cards2El.appendChild(cb);
   }
-  // Left Bot 3
+  // Left
   const cards3El = document.getElementById('cards3');
   cards3El.innerHTML = '';
   const n3 = gameState.players[3].hand.length;
   for(let i=0;i<n3;i++){
     const cb = document.createElement('div');
     cb.className = 'card-back';
-    cb.style.transform = `translateX(${i * 0.5}px)`;
     if(i===0) cb.textContent = n3;
     cards3El.appendChild(cb);
   }
@@ -454,7 +456,7 @@ function completeTrick(){
     return VALUES.indexOf(play.card.value) > VALUES.indexOf(winner.card.value) ? play : winner;
   }, null);
   const pts = calculateTrickPoints(gameState.trick);
-  if(winning) gameState.players[winning.player].score += pts;
+  if(winning) gameState.players[winning.player].roundScore += pts;
   const winnerEl = document.createElement('div');
   winnerEl.className = 'trick-winner';
   winnerEl.textContent = winning ? `${gameState.players[winning.player].name} prende il trick!` : 'Trick pareggiato';
@@ -554,25 +556,36 @@ function findPlayerWithTwoOfClubs(){
   return 0;
 }
 function endRound(){
-  let roundScores = [0,0,0,0];
   let shooter = -1;
-  for(let i=0;i<4;i++) if(gameState.players[i].score === 26) { shooter = i; break; }
+  for(let i=0;i<4;i++) {
+    if(gameState.players[i].roundScore === 26) {
+      shooter = i;
+      break;
+    }
+  }
   if(shooter !== -1){
     for(let i=0;i<4;i++){
-      if(i===shooter) roundScores[i]=0;
-      else { roundScores[i]=26; gameState.players[i].score += 26; }
+      if(i !== shooter) {
+        gameState.players[i].totalScore += 26;
+      }
     }
     statusEl.textContent = `${gameState.players[shooter].name} ha preso tutti i punti!`;
   } else {
-    for(let i=0;i<4;i++) roundScores[i] = gameState.players[i].score;
+    for(let i=0;i<4;i++) {
+      gameState.players[i].totalScore += gameState.players[i].roundScore;
+    }
+  }
+  // reset round scores
+  for(let i=0;i<4;i++) {
+    gameState.players[i].roundScore = 0;
   }
   updateUI();
-  const maxScore = Math.max(...gameState.players.map(p=>p.score));
+  const maxScore = Math.max(...gameState.players.map(p=>p.totalScore));
   if(maxScore >= 100){ endGame(); return; }
   gameState.round++;
   let possibleTargets = [0,1,3];
   gameState.randomPassTarget = possibleTargets[Math.floor(Math.random()*possibleTargets.length)];
-  const targetNames = {0:"Bot 1",1:"Bot 2",3:"Bot 3"};
+  const targetNames = {0:"Robottino Nord",1:"Robottino Est",3:"Robottino Ovest"};
   gameState.passingPhase = true;
   statusEl.textContent = `Seleziona 3 carte da scambiare con ${targetNames[gameState.randomPassTarget]}`;
   enableCardSelection(true);
@@ -589,25 +602,25 @@ function enableCardSelection(enable){
   });
 }
 function endGame(){
-  const scores = gameState.players.map(p=>p.score);
+  const scores = gameState.players.map(p=>p.totalScore);
   const minScore = Math.min(...scores);
-  const winners = gameState.players.filter(p=>p.score === minScore);
+  const winners = gameState.players.filter(p=>p.totalScore === minScore);
   let resultText = winners.length === 1 ? `${winners[0].name} vince con ${minScore} punti!` : `Pareggio tra ${winners.map(w=>w.name).join(' e ')} con ${minScore} punti!`;
   document.getElementById('game-result').textContent = resultText;
-  document.getElementById('final-player-score').textContent = gameState.players[2].score;
-  document.getElementById('final-bot1-score').textContent = gameState.players[0].score;
-  document.getElementById('final-bot2-score').textContent = gameState.players[1].score;
-  document.getElementById('final-bot3-score').textContent = gameState.players[3].score;
+  document.getElementById('final-player-score').textContent = gameState.players[2].totalScore;
+  document.getElementById('final-bot1-score').textContent = gameState.players[0].totalScore;
+  document.getElementById('final-bot2-score').textContent = gameState.players[1].totalScore;
+  document.getElementById('final-bot3-score').textContent = gameState.players[3].totalScore;
   gameOverModal.style.display = 'flex';
   gameState.gameOver = true;
 }
 function startNewGame(){
   gameState = {
     deck:[], players:[
-      {hand:[],score:0,isHuman:false,name:'Bot 1'},
-      {hand:[],score:0,isHuman:false,name:'Bot 2'},
-      {hand:[],score:0,isHuman:true, name:'Tu'},
-      {hand:[],score:0,isHuman:false,name:'Bot 3'}
+      {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Nord'},
+      {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Est'},
+      {hand:[],roundScore:0,totalScore:0,isHuman:true, name:'Tu'},
+      {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Ovest'}
     ],
     currentPlayer:0,trick:[],leadSuit:null,heartsBroken:false,
     round:0,cardsToPass:[],gameOver:false,passingPhase:true,randomPassTarget:0
