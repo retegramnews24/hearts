@@ -159,101 +159,106 @@ button:disabled{background:#7f8c8d;cursor:not-allowed}
     </div>
   </div>
 <script>
-/* --- Game & UI code --- */
+// Variabili globali per gli elementi DOM
+let playerHandEl, tableEl, statusEl, passBtn, newGameBtn, gameOverModal, closeModalBtn, difficultySelect;
+
 const SUITS = ['clubs','diamonds','spades','hearts'];
 const VALUES = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 const SYMBOLS = { 'hearts':'♥','diamonds':'♦','clubs':'♣','spades':'♠' };
+
 let gameState = {
-  deck:[], players:[
+  deck:[],
+  players:[
     {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Nord'},
     {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Est'},
     {hand:[],roundScore:0,totalScore:0,isHuman:true, name:'Tu'},
     {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Ovest'}
   ],
-  currentPlayer:0, trick:[], leadSuit:null, heartsBroken:false,
-  round:0, cardsToPass:[], gameOver:false, passingPhase:true, randomPassTarget:0,
+  currentPlayer:0,
+  trick:[],
+  leadSuit:null,
+  heartsBroken:false,
+  round:0,
+  cardsToPass:[],
+  gameOver:false,
+  passingPhase:true,
+  passingDirection: 0, // 0: sinistra, 1: destra, 2: fronte, 3: nessuno scambio
   difficulty: 'medium'
 };
-const playerHandEl = document.getElementById('player-hand');
-const tableEl = document.getElementById('table');
-const statusEl = document.getElementById('status');
-const passBtn = document.getElementById('pass-btn');
-const newGameBtn = document.getElementById('new-game-btn');
-const gameOverModal = document.getElementById('game-over-modal');
-const closeModalBtn = document.getElementById('close-modal-btn');
-const difficultySelect = document.getElementById('difficulty-select');
+
 document.addEventListener('DOMContentLoaded', initGame);
-/* --- AUDIO: Glass-like sound with Web Audio API (no external files) --- */
-let audioCtx = null;
-function playGlassSound(){
-  try {
-    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const ctx = audioCtx;
-    // create short burst of noise, filtered and pitchy to simulate glass shatter
-    const duration = 0.8;
-    const now = ctx.currentTime;
-    // noise buffer
-    const bufferSize = ctx.sampleRate * duration;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for(let i=0;i<bufferSize;i++){
-      // pink-ish noise emphasis on high frequencies for glass
-      data[i] = (Math.random()*2 - 1) * Math.exp(-3*i/bufferSize);
-    }
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-    // create a bank of bandpass filters to create pitched shards
-    const merger = ctx.createGain();
-    merger.gain.value = 0.8;
-    const freqs = [1200, 1800, 2600, 3400]; // shards
-    freqs.forEach((f, i) => {
-      const bp = ctx.createBiquadFilter();
-      bp.type = 'bandpass';
-      bp.frequency.value = f + (Math.random()*200 - 100);
-      bp.Q.value = 1.6 + Math.random()*1.2;
-      const gain = ctx.createGain();
-      gain.gain.value = 0.25 / freqs.length;
-      noise.connect(bp);
-      bp.connect(gain);
-      gain.connect(merger);
-    });
-    // envelope
-    const env = ctx.createGain();
-    env.gain.setValueAtTime(0.0, now);
-    env.gain.linearRampToValueAtTime(1.0, now + 0.02);
-    env.gain.exponentialRampToValueAtTime(0.001, now + duration);
-    merger.connect(env);
-    env.connect(ctx.destination);
-    noise.start(now);
-    noise.stop(now + duration);
-  } catch(e){
-    // if audio API fails silently, don't block game
-    console.warn('Audio not available', e);
+
+function initGame(){
+  // Inizializza gli elementi DOM
+  playerHandEl = document.getElementById('player-hand');
+  tableEl = document.getElementById('table');
+  statusEl = document.getElementById('status');
+  passBtn = document.getElementById('pass-btn');
+  newGameBtn = document.getElementById('new-game-btn');
+  gameOverModal = document.getElementById('game-over-modal');
+  closeModalBtn = document.getElementById('close-modal-btn');
+  difficultySelect = document.getElementById('difficulty-select');
+
+  createDeck();
+  shuffleDeck();
+  dealCards();
+  updateUI();
+  setupEventListeners();
+  
+  // Determina la direzione di scambio in base al round
+  gameState.passingDirection = gameState.round % 4;
+  
+  let directionText = "";
+  let targetName = "";
+  
+  switch(gameState.passingDirection) {
+    case 0: // Sinistra (passa a Ovest)
+      directionText = "sinistra (Robottino Ovest)";
+      targetName = "Robottino Ovest";
+      break;
+    case 1: // Destra (passa a Est)
+      directionText = "destra (Robottino Est)";
+      targetName = "Robottino Est";
+      break;
+    case 2: // Fronte (passa a Nord)
+      directionText = "fronte (Robottino Nord)";
+      targetName = "Robottino Nord";
+      break;
+    case 3: // Nessuno scambio
+      directionText = "nessuno scambio";
+      break;
+  }
+  
+  if (gameState.passingDirection === 3) {
+    statusEl.textContent = "Nessuno scambio in questo round. Il gioco inizierà automaticamente.";
+    setTimeout(() => {
+      startGame();
+    }, 2000);
+  } else {
+    statusEl.textContent = `Seleziona 3 carte da passare a ${targetName}`;
+    enableCardSelection(true);
+    passBtn.disabled = true;
+    passBtn.style.display = 'block';
+    gameState.cardsToPass = [];
   }
 }
-/* --- Game mechanics --- */
-function initGame(){
-  createDeck(); shuffleDeck(); dealCards(); updateUI();
-  setupEventListeners();
-  let possibleTargets = [0,1,3];
-  gameState.randomPassTarget = possibleTargets[Math.floor(Math.random()*possibleTargets.length)];
-  const targetNames = {0:"Robottino Nord",1:"Robottino Est",3:"Robottino Ovest"};
-  statusEl.textContent = `Seleziona 3 carte da scambiare con ${targetNames[gameState.randomPassTarget]}`;
-  enableCardSelection(true);
-  passBtn.disabled = true;
-  passBtn.style.display = 'block'; // Mostra il pulsante
-  gameState.cardsToPass = [];
-}
+
 function createDeck(){
   gameState.deck = [];
-  for(const s of SUITS) for(const v of VALUES) gameState.deck.push({suit:s,value:v});
+  for(const s of SUITS){
+    for(const v of VALUES){
+      gameState.deck.push({suit:s,value:v});
+    }
+  }
 }
+
 function shuffleDeck(){
   for(let i = gameState.deck.length-1; i>0; i--){
     const j = Math.floor(Math.random() * (i+1));
     [gameState.deck[i], gameState.deck[j]] = [gameState.deck[j], gameState.deck[i]];
   }
 }
+
 function dealCards(){
   for(const p of gameState.players) p.hand = [];
   for(let i=0;i<52;i++) gameState.players[i%4].hand.push(gameState.deck[i]);
@@ -263,27 +268,42 @@ function dealCards(){
       return VALUES.indexOf(a.value) - VALUES.indexOf(b.value);
     });
   }
+  verifyAllPlayersHave13Cards("dopo distribuzione iniziale");
 }
+
+function verifyAllPlayersHave13Cards(context){
+  let allValid = true;
+  gameState.players.forEach((player, index) => {
+    if(player.hand.length !== 13){
+      console.error(`ERRORE in ${context}: ${player.name} ha ${player.hand.length} carte`);
+      allValid = false;
+    }
+  });
+  return allValid;
+}
+
 function updateUI(){
-  // player's hand
+  if (!playerHandEl) return;
+  
   playerHandEl.innerHTML = '';
   gameState.players[2].hand.forEach((card, idx) => {
     const cardEl = createCardElement(card, idx);
     playerHandEl.appendChild(cardEl);
   });
-  // scores
+  
   document.getElementById('player-score').textContent = gameState.players[2].totalScore;
   document.getElementById('score1').textContent = gameState.players[0].totalScore;
   document.getElementById('score2').textContent = gameState.players[1].totalScore;
   document.getElementById('score3').textContent = gameState.players[3].totalScore;
+  
   updateOpponentCards();
   updateTable();
 }
+
 function createCardElement(card, index){
   const el = document.createElement('div');
   el.className = `player-card ${card.suit}`;
   el.dataset.index = index;
-  // if face card, make center big
   const isFace = ['J','Q','K','A'].includes(card.value);
   const centerClass = isFace ? 'card-center big' : 'card-center small';
   el.innerHTML = `
@@ -291,13 +311,13 @@ function createCardElement(card, index){
     <div class="${centerClass} ${card.suit}">${card.value}${SYMBOLS[card.suit]}</div>
     <div class="card-bottom">${card.value}${SYMBOLS[card.suit]}</div>
   `;
-  // selection only if selectable
   el.addEventListener('click', () => {
     if(el.classList.contains('selectable')) selectCard(index);
   });
   if(gameState.passingPhase) el.classList.add('selectable');
   return el;
 }
+
 function createTableCardElement(card, playerIndex){
   const el = document.createElement('div');
   el.className = `center-card ${card.suit}`;
@@ -308,7 +328,6 @@ function createTableCardElement(card, playerIndex){
     <div class="${centerClass} ${card.suit}">${card.value}${SYMBOLS[card.suit]}</div>
     <div class="card-bottom">${card.value}${SYMBOLS[card.suit]}</div>
   `;
-  // place card with offset based on player
   const positions = [
     {x:0, y:-60},
     {x:70, y:0},
@@ -320,8 +339,8 @@ function createTableCardElement(card, playerIndex){
   el.style.transition = 'transform .35s ease';
   return el;
 }
+
 function updateOpponentCards(){
-  // Top
   const cards1El = document.getElementById('cards1');
   cards1El.innerHTML = '';
   const n1 = gameState.players[0].hand.length;
@@ -331,7 +350,7 @@ function updateOpponentCards(){
     if(i===0) cb.textContent = n1;
     cards1El.appendChild(cb);
   }
-  // Right
+  
   const cards2El = document.getElementById('cards2');
   cards2El.innerHTML = '';
   const n2 = gameState.players[1].hand.length;
@@ -341,7 +360,7 @@ function updateOpponentCards(){
     if(i===0) cb.textContent = n2;
     cards2El.appendChild(cb);
   }
-  // Left
+  
   const cards3El = document.getElementById('cards3');
   cards3El.innerHTML = '';
   const n3 = gameState.players[3].hand.length;
@@ -352,6 +371,7 @@ function updateOpponentCards(){
     cards3El.appendChild(cb);
   }
 }
+
 function updateTable(){
   tableEl.innerHTML = '';
   gameState.trick.forEach(play => {
@@ -359,6 +379,7 @@ function updateTable(){
     tableEl.appendChild(el);
   });
 }
+
 function setupEventListeners(){
   passBtn.addEventListener('click', passSelectedCards);
   newGameBtn.addEventListener('click', startNewGame);
@@ -367,8 +388,8 @@ function setupEventListeners(){
     gameState.difficulty = e.target.value;
   });
 }
+
 function selectCard(index){
-  // passing phase: mark to pass
   if(gameState.passingPhase){
     const cardEls = playerHandEl.querySelectorAll('.player-card');
     if(gameState.cardsToPass.includes(index)){
@@ -381,7 +402,7 @@ function selectCard(index){
     passBtn.disabled = gameState.cardsToPass.length !== 3;
     return;
   }
-  // if not player's turn, ignore
+  
   if(gameState.currentPlayer !== 2) return;
   const card = gameState.players[2].hand[index];
   if(!isValidMove(2, card)){
@@ -390,19 +411,21 @@ function selectCard(index){
   }
   playCard(2, card, index);
 }
+
 function playCard(playerIndex, card, handIndex){
-  // If hearts are not yet broken and a heart is played now, set and play sound
   if(!gameState.heartsBroken && card.suit === 'hearts'){
     gameState.heartsBroken = true;
-    playGlassSound();
   }
-  // remove from hand
+  
   gameState.players[playerIndex].hand.splice(handIndex, 1);
   gameState.trick.push({player: playerIndex, card: card});
+  
   if(gameState.trick.length === 1){
     gameState.leadSuit = card.suit;
   }
+  
   updateUI();
+  
   if(gameState.trick.length === 4){
     setTimeout(completeTrick, 900);
   } else {
@@ -415,12 +438,13 @@ function playCard(playerIndex, card, handIndex){
     }
   }
 }
+
 function playBotTurn(){
   const i = gameState.currentPlayer;
   const bot = gameState.players[i];
   const validMoves = bot.hand.map((c, idx)=>({card:c, index:idx})).filter(({card})=> isValidMove(i, card));
+  
   if(validMoves.length === 0){
-    // fallback
     const idx = Math.floor(Math.random()*bot.hand.length);
     playCard(i, bot.hand[idx], idx);
     return;
@@ -430,13 +454,10 @@ function playBotTurn(){
   const difficulty = gameState.difficulty;
   
   if(gameState.trick.length === 0){
-    // Leading a card
     if(difficulty === 'easy') {
-      // Facile: gioca casualmente tra le carte sicure
       const safe = validMoves.filter(({card}) => card.suit !== 'hearts' && !(card.suit === 'spades' && card.value === 'Q'));
       selection = safe.length ? safe[Math.floor(Math.random()*safe.length)] : validMoves[Math.floor(Math.random()*validMoves.length)];
     } else if(difficulty === 'medium') {
-      // Medio: evita cuori e Q di picche, preferisce carte basse
       const safe = validMoves.filter(({card}) => card.suit !== 'hearts' && !(card.suit === 'spades' && card.value === 'Q'));
       if(safe.length) {
         selection = safe.reduce((lowest, current) => 
@@ -446,36 +467,30 @@ function playBotTurn(){
         selection = validMoves[Math.floor(Math.random()*validMoves.length)];
       }
     } else {
-      // Difficile: strategia avanzata
       const safe = validMoves.filter(({card}) => card.suit !== 'hearts' && !(card.suit === 'spades' && card.value === 'Q'));
       if(safe.length) {
-        // Preferisce carte medio-basse per conservare le carte alte
         const sortedSafe = safe.sort((a,b) => VALUES.indexOf(a.card.value) - VALUES.indexOf(b.card.value));
-        selection = sortedSafe[Math.floor(sortedSafe.length * 0.3)]; // Prende una carta dal 30% più basso
+        selection = sortedSafe[Math.floor(sortedSafe.length * 0.3)];
       } else {
-        // Se deve giocare cuori o Q di picche, gioca la più alta per forzare gli altri a prendere
         selection = validMoves.reduce((highest, current) => 
           VALUES.indexOf(current.card.value) > VALUES.indexOf(highest.card.value) ? current : highest
         );
       }
     }
   } else {
-    // Following suit or sloughing
     const follow = validMoves.filter(({card}) => card.suit === gameState.leadSuit);
     
     if(follow.length > 0){
-      // Can follow suit
       if(difficulty === 'easy') {
         selection = follow[Math.floor(Math.random()*follow.length)];
       } else if(difficulty === 'medium') {
-        const takeTrick = Math.random() > 0.6; // 40% di probabilità di prendere il trick
+        const takeTrick = Math.random() > 0.6;
         if(takeTrick) {
           selection = follow.reduce((h,c)=> VALUES.indexOf(c.card.value) > VALUES.indexOf(h.card.value) ? c : h);
         } else {
           selection = follow.reduce((l,c)=> VALUES.indexOf(c.card.value) < VALUES.indexOf(l.card.value) ? c : l);
         }
       } else {
-        // Difficile: strategia intelligente
         const currentTrickHigh = Math.max(...gameState.trick
           .filter(p => p.card.suit === gameState.leadSuit)
           .map(p => VALUES.indexOf(p.card.value)));
@@ -483,38 +498,31 @@ function playBotTurn(){
         const canWin = follow.some(c => VALUES.indexOf(c.card.value) > currentTrickHigh);
         
         if(canWin) {
-          // Se può vincere, valuta se conviene
           const wouldTakePoints = calculateTrickPoints([...gameState.trick, {card: follow[0].card}]) > 0;
-          if(wouldTakePoints && Math.random() > 0.3) { // 70% di evitare punti
+          if(wouldTakePoints && Math.random() > 0.3) {
             selection = follow.reduce((l,c)=> VALUES.indexOf(c.card.value) < VALUES.indexOf(l.card.value) ? c : l);
           } else {
             selection = follow.find(c => VALUES.indexOf(c.card.value) > currentTrickHigh) || follow[0];
           }
         } else {
-          // Non può vincere, gioca la carta più bassa
           selection = follow.reduce((l,c)=> VALUES.indexOf(c.card.value) < VALUES.indexOf(l.card.value) ? c : l);
         }
       }
     } else {
-      // Cannot follow suit - sloughing
       if(difficulty === 'easy') {
         selection = validMoves[Math.floor(Math.random()*validMoves.length)];
       } else if(difficulty === 'medium') {
-        // Cerca di scaricare carte pericolose
         const dangerous = validMoves.filter(({card}) => card.suit === 'hearts' || (card.suit === 'spades' && card.value === 'Q'));
         selection = dangerous.length ? dangerous[0] : validMoves[Math.floor(Math.random()*validMoves.length)];
       } else {
-        // Difficile: scarica strategicamente
         const dangerous = validMoves.filter(({card}) => card.suit === 'hearts' || (card.suit === 'spades' && card.value === 'Q'));
         if(dangerous.length) {
-          // Scarica la carta più pericolosa prima
           selection = dangerous.reduce((mostDangerous, current) => {
             const currentScore = current.card.suit === 'spades' && current.card.value === 'Q' ? 13 : 1;
             const mostScore = mostDangerous.card.suit === 'spades' && mostDangerous.card.value === 'Q' ? 13 : 1;
             return currentScore > mostScore ? current : mostDangerous;
           });
         } else {
-          // Se non ha carte pericolose, gioca una carta alta per forzare
           selection = validMoves.reduce((h,c)=> VALUES.indexOf(c.card.value) > VALUES.indexOf(h.card.value) ? c : h);
         }
       }
@@ -523,43 +531,51 @@ function playBotTurn(){
   
   playCard(i, selection.card, selection.index);
 }
+
 function isValidMove(playerIndex, card){
   const player = gameState.players[playerIndex];
-  // first round: 2 of clubs must be played by starter
+  
   if(gameState.round === 0 && playerIndex === gameState.currentPlayer &&
      player.hand.some(c => c.suit === 'clubs' && c.value === '2')){
     return card.suit === 'clubs' && card.value === '2';
   }
-  // if trick is empty: cannot lead hearts if not broken, unless only hearts remain
+  
   if(gameState.trick.length === 0){
     if(!gameState.heartsBroken && card.suit === 'hearts'){
       return player.hand.every(c => c.suit === 'hearts');
     }
     return true;
   }
-  // otherwise must follow suit if possible
+  
   const hasLead = player.hand.some(c => c.suit === gameState.leadSuit);
   if(hasLead) return card.suit === gameState.leadSuit;
   return true;
 }
+
 function completeTrick(){
   const winning = gameState.trick.reduce((winner, play)=>{
     if(play.card.suit !== gameState.leadSuit) return winner;
     if(!winner) return play;
     return VALUES.indexOf(play.card.value) > VALUES.indexOf(winner.card.value) ? play : winner;
   }, null);
+  
   const pts = calculateTrickPoints(gameState.trick);
   if(winning) gameState.players[winning.player].roundScore += pts;
+  
   const winnerEl = document.createElement('div');
   winnerEl.className = 'trick-winner';
   winnerEl.textContent = winning ? `${gameState.players[winning.player].name} prende il trick!` : 'Trick pareggiato';
   tableEl.appendChild(winnerEl);
   statusEl.textContent = winning ? `${gameState.players[winning.player].name} prende il trick e guadagna ${pts} punti!` : 'Trick completato';
+  
   gameState.currentPlayer = winning ? winning.player : gameState.currentPlayer;
+  
   setTimeout(()=>{
-    gameState.trick = []; gameState.leadSuit = null;
+    gameState.trick = [];
+    gameState.leadSuit = null;
     updateUI();
     winnerEl.remove();
+    
     if(gameState.players.every(p => p.hand.length === 0)){
       setTimeout(endRound, 900);
     } else {
@@ -568,6 +584,7 @@ function completeTrick(){
     }
   }, 1200);
 }
+
 function calculateTrickPoints(trick){
   let pts = 0;
   for(const p of trick){
@@ -576,31 +593,41 @@ function calculateTrickPoints(trick){
   }
   return pts;
 }
+
 function passSelectedCards(){
   if(gameState.cardsToPass.length !== 3) return;
   
-  // Nascondi il pulsante dopo lo scambio
   passBtn.style.display = 'none';
   
-  // Get the cards to pass from player's hand
-  const sorted = [...gameState.cardsToPass].sort((a,b)=>b-a);
-  const cardsToPass = sorted.map(i => gameState.players[2].hand[i]);
+  // Prendiamo le carte selezionate dal giocatore umano
+  const humanCardsToPass = [...gameState.cardsToPass]
+    .sort((a,b)=>b-a)
+    .map(i => {
+      const card = gameState.players[2].hand[i];
+      return {suit: card.suit, value: card.value};
+    });
   
-  // Remove cards from player's hand
-  for(const i of sorted) gameState.players[2].hand.splice(i,1);
+  console.log("Giocatore umano passa:", humanCardsToPass.map(c => `${c.value}${SYMBOLS[c.suit]}`));
   
-  // Pass cards to target bot
-  gameState.players[gameState.randomPassTarget].hand.push(...cardsToPass);
-  
-  // Now handle bot-to-bot passing - CORRETTO: prima raccogli tutte le carte da passare, POI distribuiscile
-  const botPasses = passBotCards();
-  
-  // Applica tutti gli scambi dei bot
-  for(const pass of botPasses) {
-    gameState.players[pass.to].hand.push(...pass.cards);
+  // Rimuoviamo le carte dalla mano del giocatore umano
+  const sortedIndices = [...gameState.cardsToPass].sort((a,b)=>b-a);
+  for(const i of sortedIndices) {
+    gameState.players[2].hand.splice(i, 1);
   }
   
-  // Sort all hands
+  // Eseguiamo lo scambio completo secondo la direzione prestabilita
+  executeCompleteCardPassing(humanCardsToPass);
+  
+  // Verifica che tutti abbiano 13 carte dopo lo scambio
+  if(!verifyAllPlayersHave13Cards("dopo scambio")) {
+    console.error("ERRORE: qualcuno non ha 13 carte dopo lo scambio!");
+    // Reset di emergenza
+    createDeck();
+    shuffleDeck();
+    dealCards();
+  }
+  
+  // Ordina tutte le mani
   for(const p of gameState.players){
     p.hand.sort((a,b)=>{
       if(a.suit !== b.suit) return SUITS.indexOf(a.suit) - SUITS.indexOf(b.suit);
@@ -608,65 +635,126 @@ function passSelectedCards(){
     });
   }
   
-  // Verifica che ogni giocatore abbia 13 carte
-  console.log("Carte dopo lo scambio:");
-  gameState.players.forEach((p, i) => {
-    console.log(`${p.name}: ${p.hand.length} carte`);
-  });
+  console.log("Carte del giocatore umano dopo scambio:", gameState.players[2].hand.map(c => `${c.value}${SYMBOLS[c.suit]}`));
   
   startGame();
 }
-function passBotCards(){
-  const passes = [];
+
+function executeCompleteCardPassing(humanPassedCards) {
+  const allPasses = [];
   
-  // For each bot, select 3 cards to pass
-  for(let i=0;i<4;i++){
-    if(i===2) continue; // Skip human player
-    
-    const bot = gameState.players[i];
-    // Sort cards by value (pass worst cards)
-    const sorted = [...bot.hand].sort((a,b)=>{
-      const av = (a.suit==='spades' && a.value==='Q') ? 100 : 
-                 (a.suit==='hearts' ? VALUES.indexOf(a.value)+50 : 
-                 VALUES.indexOf(a.value));
-      const bv = (b.suit==='spades' && b.value==='Q') ? 100 : 
-                 (b.suit==='hearts' ? VALUES.indexOf(b.value)+50 : 
-                 VALUES.indexOf(b.value));
-      return bv - av; // Higher value = worse card
-    });
-    
-    const toPass = sorted.slice(0,3);
-    
-    // Remove these cards from bot's actual hand
-    for(const card of toPass){
-      const idx = bot.hand.findIndex(c => c.suit === card.suit && c.value === card.value);
-      if(idx !== -1) bot.hand.splice(idx,1);
-    }
-    
-    // Choose random target (not self)
-    let target;
-    do { target = Math.floor(Math.random()*4); } while(target === i);
-    
-    // Store the pass to apply later
-    passes.push({from: i, to: target, cards: toPass});
+  // Determiniamo i target di scambio per ogni giocatore in base alla direzione
+  const passTargets = {};
+  
+  switch(gameState.passingDirection) {
+    case 0: // Sinistra (tutti passano a sinistra)
+      passTargets[0] = 3; // Nord -> Ovest
+      passTargets[1] = 0; // Est -> Nord
+      passTargets[2] = 1; // Sud -> Est
+      passTargets[3] = 2; // Ovest -> Sud
+      break;
+    case 1: // Destra (tutti passano a destra)
+      passTargets[0] = 1; // Nord -> Est
+      passTargets[1] = 2; // Est -> Sud
+      passTargets[2] = 3; // Sud -> Ovest
+      passTargets[3] = 0; // Ovest -> Nord
+      break;
+    case 2: // Fronte (tutti passano di fronte)
+      passTargets[0] = 2; // Nord -> Sud
+      passTargets[1] = 3; // Est -> Ovest
+      passTargets[2] = 0; // Sud -> Nord
+      passTargets[3] = 1; // Ovest -> Est
+      break;
+    case 3: // Nessuno scambio
+      // Non dovrebbe arrivare qui
+      return;
   }
   
-  return passes;
+  // Aggiungi il passaggio del giocatore umano
+  allPasses.push({
+    from: 2,
+    to: passTargets[2],
+    cards: humanPassedCards
+  });
+  
+  console.log(`Giocatore umano passa a ${gameState.players[passTargets[2]].name}:`, 
+    humanPassedCards.map(c => `${c.value}${SYMBOLS[c.suit]}`));
+  
+  // Per ogni bot, seleziona le carte da passare
+  const botIndices = [0, 1, 3];
+  for(const botIndex of botIndices) {
+    const bot = gameState.players[botIndex];
+    const target = passTargets[botIndex];
+    
+    // Seleziona le 3 carte peggiori del bot
+    const cardScores = bot.hand.map(card => ({
+      card,
+      score: calculateCardScore(card)
+    }));
+    
+    cardScores.sort((a, b) => b.score - a.score);
+    const cardsToPass = cardScores.slice(0, 3).map(item => ({
+      suit: item.card.suit, 
+      value: item.card.value
+    }));
+    
+    allPasses.push({
+      from: botIndex,
+      to: target,
+      cards: cardsToPass
+    });
+    
+    console.log(`${bot.name} passa a ${gameState.players[target].name}:`, 
+      cardsToPass.map(c => `${c.value}${SYMBOLS[c.suit]}`));
+  }
+  
+  // FASE 1: Rimuovi tutte le carte dalle mani dei mittenti
+  for(const pass of allPasses) {
+    for(const card of pass.cards) {
+      const cardIndex = gameState.players[pass.from].hand.findIndex(c => 
+        c.suit === card.suit && c.value === card.value
+      );
+      if(cardIndex !== -1) {
+        gameState.players[pass.from].hand.splice(cardIndex, 1);
+      }
+    }
+  }
+  
+  // FASE 2: Aggiungi tutte le carte ai destinatari
+  for(const pass of allPasses) {
+    gameState.players[pass.to].hand.push(...pass.cards);
+    console.log(`${gameState.players[pass.to].name} riceve da ${gameState.players[pass.from].name}:`, 
+      pass.cards.map(c => `${c.value}${SYMBOLS[c.suit]}`));
+  }
+  
+  // Debug: mostra il conteggio carte finale
+  console.log("Conteggio carte dopo lo scambio:");
+  gameState.players.forEach((player, index) => {
+    console.log(`${player.name}: ${player.hand.length} carte`);
+  });
 }
+
+function calculateCardScore(card){
+  if(card.suit === 'spades' && card.value === 'Q') return 100;
+  if(card.suit === 'hearts') return 50 + VALUES.indexOf(card.value);
+  return VALUES.indexOf(card.value);
+}
+
 function startGame(){
   gameState.passingPhase = false;
-  gameState.trick = []; gameState.leadSuit = null; gameState.heartsBroken = false;
-  // who has 2 of clubs?
+  gameState.trick = [];
+  gameState.leadSuit = null;
+  gameState.heartsBroken = false;
+  
   const starter = findPlayerWithTwoOfClubs();
   gameState.currentPlayer = starter;
-  // update UI before auto-play
+  
   updateUI();
+  
   if(starter === 2){
-    // auto-play 2♣ from player's hand automatically after a short delay
     const idx = gameState.players[2].hand.findIndex(c => c.suit === 'clubs' && c.value === '2');
     if(idx !== -1){
       statusEl.textContent = 'Sei il primo: il 2 di fiori verrà giocato automaticamente.';
-      // disable user selection to avoid interference while auto-playing
       enableCardSelection(false);
       setTimeout(()=>{
         const card = gameState.players[2].hand[idx];
@@ -680,12 +768,14 @@ function startGame(){
     setTimeout(playBotTurn, 900);
   }
 }
+
 function findPlayerWithTwoOfClubs(){
   for(let i=0;i<gameState.players.length;i++){
     if(gameState.players[i].hand.some(c => c.suit === 'clubs' && c.value === '2')) return i;
   }
   return 0;
 }
+
 function endRound(){
   let shooter = -1;
   for(let i=0;i<4;i++) {
@@ -694,6 +784,7 @@ function endRound(){
       break;
     }
   }
+  
   if(shooter !== -1){
     for(let i=0;i<4;i++){
       if(i !== shooter) {
@@ -706,26 +797,34 @@ function endRound(){
       gameState.players[i].totalScore += gameState.players[i].roundScore;
     }
   }
-  // reset round scores
+  
   for(let i=0;i<4;i++) {
     gameState.players[i].roundScore = 0;
   }
+  
   updateUI();
+  
   const maxScore = Math.max(...gameState.players.map(p=>p.totalScore));
-  if(maxScore >= 100){ endGame(); return; }
+  if(maxScore >= 100){
+    endGame();
+    return;
+  }
+  
   gameState.round++;
-  let possibleTargets = [0,1,3];
-  gameState.randomPassTarget = possibleTargets[Math.floor(Math.random()*possibleTargets.length)];
-  const targetNames = {0:"Robottino Nord",1:"Robottino Est",3:"Robottino Ovest"};
+  
+  // Prepara il prossimo round
   gameState.passingPhase = true;
-  statusEl.textContent = `Seleziona 3 carte da scambiare con ${targetNames[gameState.randomPassTarget]}`;
-  enableCardSelection(true);
-  passBtn.disabled = true;
-  passBtn.style.display = 'block'; // Mostra di nuovo il pulsante per il nuovo round
   gameState.cardsToPass = [];
-  // new deal
-  createDeck(); shuffleDeck(); dealCards(); updateUI();
+  
+  createDeck();
+  shuffleDeck();
+  dealCards();
+  updateUI();
+  
+  // Re-inizializza il gioco con la nuova direzione di scambio
+  initGame();
 }
+
 function enableCardSelection(enable){
   const cardEls = playerHandEl.querySelectorAll('.player-card');
   cardEls.forEach(el => {
@@ -733,31 +832,44 @@ function enableCardSelection(enable){
     else el.classList.remove('selectable','selected');
   });
 }
+
 function endGame(){
   const scores = gameState.players.map(p=>p.totalScore);
   const minScore = Math.min(...scores);
   const winners = gameState.players.filter(p=>p.totalScore === minScore);
   let resultText = winners.length === 1 ? `${winners[0].name} vince con ${minScore} punti!` : `Pareggio tra ${winners.map(w=>w.name).join(' e ')} con ${minScore} punti!`;
+  
   document.getElementById('game-result').textContent = resultText;
   document.getElementById('final-player-score').textContent = gameState.players[2].totalScore;
   document.getElementById('final-bot1-score').textContent = gameState.players[0].totalScore;
   document.getElementById('final-bot2-score').textContent = gameState.players[1].totalScore;
   document.getElementById('final-bot3-score').textContent = gameState.players[3].totalScore;
+  
   gameOverModal.style.display = 'flex';
   gameState.gameOver = true;
 }
+
 function startNewGame(){
   gameState = {
-    deck:[], players:[
+    deck:[],
+    players:[
       {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Nord'},
       {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Est'},
       {hand:[],roundScore:0,totalScore:0,isHuman:true, name:'Tu'},
       {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Ovest'}
     ],
-    currentPlayer:0,trick:[],leadSuit:null,heartsBroken:false,
-    round:0,cardsToPass:[],gameOver:false,passingPhase:true,randomPassTarget:0,
+    currentPlayer:0,
+    trick:[],
+    leadSuit:null,
+    heartsBroken:false,
+    round:0,
+    cardsToPass:[],
+    gameOver:false,
+    passingPhase:true,
+    passingDirection: 0,
     difficulty: difficultySelect.value
   };
+  
   gameOverModal.style.display = 'none';
   initGame();
 }
