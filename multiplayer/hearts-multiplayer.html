@@ -1,0 +1,247 @@
+<!-- hearts-multiplayer.html -->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<!-- Tutto l'head esistente COPIATO dal file originale -->
+<!-- ... -->
+</head>
+<body>
+<!-- Tutto il body esistente COPIATO dal file originale -->
+<!-- ... -->
+
+<script>
+// === INIZIO: CODICE ESISTENTE INTEGRO ===
+// Tutto il codice JavaScript originale qui...
+// ... (copia esatta del tuo script attuale)
+
+// === FINE: CODICE ESISTENTE ===
+
+// === INIZIO: AGGIUNTE MULTIPLAYER ===
+let socket = null;
+let isMultiplayer = false;
+let roomId = null;
+let playerId = null;
+
+// Aggiungi il pulsante multiplayer all'UI esistente
+function addMultiplayerUI() {
+    const controls = document.querySelector('.controls .left');
+    const multiplayerBtn = document.createElement('button');
+    multiplayerBtn.id = 'multiplayer-btn';
+    multiplayerBtn.textContent = '🔗 Multiplayer';
+    multiplayerBtn.addEventListener('click', toggleMultiplayer);
+    controls.appendChild(multiplayerBtn);
+}
+
+function toggleMultiplayer() {
+    if (isMultiplayer) {
+        disconnectMultiplayer();
+    } else {
+        initMultiplayer();
+    }
+}
+
+function initMultiplayer() {
+    // Usa un server WebSocket pubblico o il tuo
+    const wsUrl = 'wss://tuo-server-hearts.herokuapp.com'; 
+    // Per sviluppo locale: 'ws://localhost:3000'
+    
+    try {
+        socket = new WebSocket(wsUrl);
+        
+        socket.onopen = () => {
+            console.log('Connesso al server multiplayer');
+            joinOrCreateRoom();
+        };
+        
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            handleMultiplayerEvent(data);
+        };
+        
+        socket.onclose = () => {
+            console.log('Connessione chiusa');
+            handleDisconnection();
+        };
+        
+        socket.onerror = (error) => {
+            console.error('Errore WebSocket:', error);
+            statusEl.textContent = 'Errore di connessione - Rimani in single player';
+        };
+        
+    } catch (error) {
+        console.error('Impossibile connettersi:', error);
+        statusEl.textContent = 'Server multiplayer non disponibile';
+    }
+}
+
+function joinOrCreateRoom() {
+    const urlParams = new URLSearchParams(window.location.search);
+    roomId = urlParams.get('room') || generateRoomId();
+    
+    socket.send(JSON.stringify({
+        type: 'join',
+        roomId: roomId,
+        playerName: getPlayerName()
+    }));
+}
+
+function generateRoomId() {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+function getPlayerName() {
+    // Potresti chiedere il nome all'utente
+    return 'Giocatore_' + Math.random().toString(36).substring(2, 6);
+}
+
+function handleMultiplayerEvent(data) {
+    switch(data.type) {
+        case 'joined':
+            playerId = data.playerId;
+            isMultiplayer = true;
+            document.getElementById('multiplayer-btn').textContent = '🔒 Disconnetti';
+            updateStatus(`In room: ${data.roomId} - Giocatori: ${data.playerCount}/4`);
+            updatePlayerNames(data.players);
+            break;
+            
+        case 'playerJoined':
+            updateStatus(`${data.playerName} si è unito (${data.playerCount}/4 giocatori)`);
+            updatePlayerNames(data.players);
+            break;
+            
+        case 'gameState':
+            syncGameState(data.gameState);
+            break;
+            
+        case 'startGame':
+            startMultiplayerGame(data.initialState);
+            break;
+            
+        case 'playerAction':
+            handlePlayerAction(data);
+            break;
+            
+        case 'error':
+            console.error('Errore multiplayer:', data.message);
+            statusEl.textContent = data.message;
+            break;
+    }
+}
+
+function updatePlayerNames(players) {
+    // Aggiorna i nomi dei giocatori nell'UI
+    players.forEach((player, index) => {
+        if (gameState.players[index]) {
+            gameState.players[index].name = player.name || gameState.players[index].name;
+        }
+    });
+    updateUI();
+}
+
+function startMultiplayerGame(initialState) {
+    gameState = { ...gameState, ...initialState };
+    gameState.passingPhase = true;
+    updateUI();
+    
+    statusEl.textContent = getPassingDirectionText();
+    
+    if (gameState.passingDirection === 3) {
+        setTimeout(() => {
+            socket.send(JSON.stringify({ type: 'readyToPlay' }));
+        }, 2000);
+    } else {
+        enableCardSelection(true);
+    }
+}
+
+// Sostituisci le funzioni esistenti con versioni multiplayer-aware
+const originalPlayCard = window.playCard;
+window.playCard = function(playerIndex, card, handIndex) {
+    if (isMultiplayer && playerIndex === 2) {
+        // In multiplayer, invia la mossa al server
+        socket.send(JSON.stringify({
+            type: 'playCard',
+            card: card,
+            handIndex: handIndex
+        }));
+    }
+    // Chiama la funzione originale
+    originalPlayCard(playerIndex, card, handIndex);
+};
+
+const originalPassSelectedCards = window.passSelectedCards;
+window.passSelectedCards = function() {
+    if (isMultiplayer) {
+        if(gameState.cardsToPass.length !== 3) return;
+        
+        const humanCardsToPass = [...gameState.cardsToPass]
+            .sort((a,b)=>b-a)
+            .map(i => {
+                const card = gameState.players[2].hand[i];
+                return {suit: card.suit, value: card.value};
+            });
+        
+        socket.send(JSON.stringify({
+            type: 'passCards',
+            cards: humanCardsToPass
+        }));
+        
+        passBtn.style.display = 'none';
+    } else {
+        // Single player - usa la funzione originale
+        originalPassSelectedCards();
+    }
+};
+
+function handlePlayerAction(data) {
+    switch(data.action) {
+        case 'playCard':
+            // Un altro giocatore ha giocato una carta
+            const cardEl = createTableCardElement(data.card, data.playerIndex);
+            tableEl.appendChild(cardEl);
+            break;
+            
+        case 'completeTrick':
+            // Il server ha completato un trick
+            setTimeout(() => {
+                gameState.trick = [];
+                updateUI();
+                if (gameState.currentPlayer === 2) {
+                    enableCardSelection(true);
+                }
+            }, 1200);
+            break;
+    }
+}
+
+function handleDisconnection() {
+    isMultiplayer = false;
+    document.getElementById('multiplayer-btn').textContent = '🔗 Multiplayer';
+    statusEl.textContent = 'Disconnesso - Modalità single player attiva';
+    // Ripristina nomi bot
+    gameState.players[0].name = 'Robottino Nord';
+    gameState.players[1].name = 'Robottino Est'; 
+    gameState.players[3].name = 'Robottino Ovest';
+    updateUI();
+}
+
+function disconnectMultiplayer() {
+    if (socket) {
+        socket.close();
+    }
+    handleDisconnection();
+}
+
+// Inizializza l'UI multiplayer quando la pagina carica
+document.addEventListener('DOMContentLoaded', function() {
+    // Chiama l'inizializzazione originale
+    if (typeof initGame === 'function') {
+        initGame();
+    }
+    // Aggiungi l'UI multiplayer
+    setTimeout(addMultiplayerUI, 100);
+});
+// === FINE: AGGIUNTE MULTIPLAYER ===
+</script>
+</body>
+</html>
