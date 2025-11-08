@@ -535,18 +535,35 @@ function playBotTurn(){
 function isValidMove(playerIndex, card){
   const player = gameState.players[playerIndex];
   
-  if(gameState.round === 0 && playerIndex === gameState.currentPlayer &&
+  // Primo round: il giocatore che ha il 2 di fiori deve giocarlo per primo
+  if(gameState.round === 0 && gameState.trick.length === 0 &&
      player.hand.some(c => c.suit === 'clubs' && c.value === '2')){
     return card.suit === 'clubs' && card.value === '2';
   }
   
+  // Quando si conduce un trick (trick vuoto)
   if(gameState.trick.length === 0){
-    if(!gameState.heartsBroken && card.suit === 'hearts'){
-      return player.hand.every(c => c.suit === 'hearts');
+    // Alla prima mano (round 0) non si possono aprire i cuori a meno che non si abbiano solo cuori
+    // E non si può giocare la donna di picche
+    if(gameState.round === 0) {
+      // Se il giocatore tenta di giocare cuori, deve avere solo cuori
+      if(card.suit === 'hearts' && !player.hand.every(c => c.suit === 'hearts')) {
+        return false;
+      }
+      // Non può giocare la donna di picche come prima carta
+      if(card.suit === 'spades' && card.value === 'Q') {
+        return false;
+      }
+    } else {
+      // Dopo il primo round, i cuori possono essere giocati solo se i cuori sono stati rotti o se il giocatore ha solo cuori
+      if(!gameState.heartsBroken && card.suit === 'hearts'){
+        return player.hand.every(c => c.suit === 'hearts');
+      }
     }
     return true;
   }
   
+  // Altrimenti, deve seguire il seme di uscita se possibile
   const hasLead = player.hand.some(c => c.suit === gameState.leadSuit);
   if(hasLead) return card.suit === gameState.leadSuit;
   return true;
