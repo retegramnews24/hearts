@@ -915,14 +915,15 @@ select {
   </div>
 
   <!-- Elementi audio per i suoni -->
-  <audio id="hearts-sound" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
-  <audio id="queen-sound" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
+  <audio id="start-sound" preload="auto"></audio>
+  <audio id="hearts-sound" preload="auto"></audio>
+  <audio id="queen-sound" preload="auto"></audio>
 
 <script>
 // Variabili globali per gli elementi DOM
 let playerHandEl, tableEl, passBtn, newGameBtn, gameOverModal, closeModalBtn, difficultySelect;
 let currentRoundEl, roundPointsEl, newGameModalBtn, centerButtonContainer;
-let heartsSound, queenSound;
+let startSound, heartsSound, queenSound;
 
 const SUITS = ['clubs','diamonds','spades','hearts'];
 const VALUES = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
@@ -968,12 +969,14 @@ function initGame(){
   centerButtonContainer = document.getElementById('center-button-container');
   
   // Inizializza gli elementi audio
+  startSound = document.getElementById('start-sound');
   heartsSound = document.getElementById('hearts-sound');
   queenSound = document.getElementById('queen-sound');
   
-  // Crea suoni di base (beep) per cuori e regina
-  createBeepSound(heartsSound, 523.25, 0.3); // Do5 per cuori
-  createBeepSound(queenSound, 659.25, 0.5); // Mi5 per regina
+  // Crea i suoni
+  createStartSound();
+  createHeartsSound();
+  createQueenSound();
 
   createDeck();
   shuffleDeck();
@@ -1012,27 +1015,39 @@ function initGame(){
   }
 }
 
-// Funzione per creare suoni di base
-function createBeepSound(audioElement, frequency, duration) {
+// Funzione per creare suono di inizio (trillo)
+function createStartSound() {
   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
+  const duration = 0.8;
+  const mainGain = audioContext.createGain();
+  mainGain.gain.setValueAtTime(0.3, audioContext.currentTime);
+  mainGain.connect(audioContext.destination);
   
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
+  // Crea una serie di oscillatori per un trillo
+  const times = [0, 0.1, 0.2, 0.3, 0.5, 0.6, 0.7];
+  const frequencies = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98, 2093.00];
   
-  oscillator.frequency.value = frequency;
-  oscillator.type = 'sine';
+  times.forEach((time, index) => {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(mainGain);
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(frequencies[index], audioContext.currentTime);
+    
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + time + 0.05);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + time + 0.15);
+    
+    oscillator.start(audioContext.currentTime + time);
+    oscillator.stop(audioContext.currentTime + time + 0.2);
+  });
   
-  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-  
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + duration);
-  
-  // Esporta il suono come blob e lo assegna all'elemento audio
+  // Esporta il suono
   const destination = audioContext.createMediaStreamDestination();
-  oscillator.connect(destination);
+  mainGain.connect(destination);
   
   const mediaRecorder = new MediaRecorder(destination.stream);
   const chunks = [];
@@ -1044,12 +1059,153 @@ function createBeepSound(audioElement, frequency, duration) {
   mediaRecorder.onstop = function() {
     const blob = new Blob(chunks, { 'type' : 'audio/wav' });
     const audioURL = window.URL.createObjectURL(blob);
-    audioElement.src = audioURL;
+    startSound.src = audioURL;
   };
   
   mediaRecorder.start();
   setTimeout(() => {
     mediaRecorder.stop();
+    audioContext.close();
+  }, duration * 1000);
+}
+
+// Funzione per creare suono di vetro rotto (apertura cuori)
+function createHeartsSound() {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const duration = 1.2;
+  
+  // Crea rumore bianco
+  const bufferSize = audioContext.sampleRate * duration;
+  const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+  const data = buffer.getChannelData(0);
+  
+  for (let i = 0; i < bufferSize; i++) {
+    // Rumore bianco con envelope esponenziale
+    const progress = i / bufferSize;
+    const envelope = Math.pow(1 - progress, 2); // Decadimento rapido
+    data[i] = (Math.random() * 2 - 1) * envelope;
+  }
+  
+  const whiteNoise = audioContext.createBufferSource();
+  whiteNoise.buffer = buffer;
+  
+  // Filtro passa-alto per simulare vetro che si rompe
+  const highPassFilter = audioContext.createBiquadFilter();
+  highPassFilter.type = 'highpass';
+  highPassFilter.frequency.value = 1000;
+  
+  // Filtro passa-banda per accentuare le alte frequenze
+  const bandPassFilter = audioContext.createBiquadFilter();
+  bandPassFilter.type = 'bandpass';
+  bandPassFilter.frequency.value = 3000;
+  bandPassFilter.Q.value = 1;
+  
+  const gainNode = audioContext.createGain();
+  gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+  
+  whiteNoise.connect(highPassFilter);
+  highPassFilter.connect(bandPassFilter);
+  bandPassFilter.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  // Esporta il suono
+  const destination = audioContext.createMediaStreamDestination();
+  gainNode.connect(destination);
+  
+  const mediaRecorder = new MediaRecorder(destination.stream);
+  const chunks = [];
+  
+  mediaRecorder.ondataavailable = function(e) {
+    chunks.push(e.data);
+  };
+  
+  mediaRecorder.onstop = function() {
+    const blob = new Blob(chunks, { 'type' : 'audio/wav' });
+    const audioURL = window.URL.createObjectURL(blob);
+    heartsSound.src = audioURL;
+  };
+  
+  mediaRecorder.start();
+  whiteNoise.start();
+  
+  setTimeout(() => {
+    mediaRecorder.stop();
+    audioContext.close();
+  }, duration * 1000);
+}
+
+// Funzione per creare suono "uuuu" per la regina di picche
+function createQueenSound() {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const duration = 1.5;
+  
+  // Crea multiple oscillatori per un suono corale
+  const frequencies = [220, 277.18, 329.63, 440]; // La3, Do#4, Mi4, La4
+  const gainNodes = [];
+  
+  const mainGain = audioContext.createGain();
+  mainGain.gain.setValueAtTime(0, audioContext.currentTime);
+  mainGain.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 0.3);
+  mainGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+  mainGain.connect(audioContext.destination);
+  
+  frequencies.forEach(freq => {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(mainGain);
+    
+    // Leggera variazione di frequenza per effetto corale
+    const detune = (Math.random() - 0.5) * 20;
+    oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
+    oscillator.detune.setValueAtTime(detune, audioContext.currentTime);
+    
+    // Tipo d'onda per suono vocale
+    oscillator.type = 'sawtooth';
+    
+    // Modulazione dell'ampiezza per effetto "uuuu"
+    const variation = 0.1 + Math.random() * 0.2;
+    gainNode.gain.setValueAtTime(variation, audioContext.currentTime);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + duration);
+    
+    gainNodes.push(gainNode);
+  });
+  
+  // Aggiungi un filtro per simulare voci umane
+  const filter = audioContext.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 800;
+  filter.Q.value = 0.7;
+  
+  mainGain.connect(filter);
+  filter.connect(audioContext.destination);
+  
+  // Esporta il suono
+  const destination = audioContext.createMediaStreamDestination();
+  filter.connect(destination);
+  
+  const mediaRecorder = new MediaRecorder(destination.stream);
+  const chunks = [];
+  
+  mediaRecorder.ondataavailable = function(e) {
+    chunks.push(e.data);
+  };
+  
+  mediaRecorder.onstop = function() {
+    const blob = new Blob(chunks, { 'type' : 'audio/wav' });
+    const audioURL = window.URL.createObjectURL(blob);
+    queenSound.src = audioURL;
+  };
+  
+  mediaRecorder.start();
+  
+  setTimeout(() => {
+    mediaRecorder.stop();
+    audioContext.close();
   }, duration * 1000);
 }
 
@@ -1282,7 +1438,7 @@ function playCard(playerIndex, card, handIndex){
   // Controlla se è la prima carta di cuori giocata
   if(!gameState.heartsBroken && card.suit === 'hearts'){
     gameState.heartsBroken = true;
-    // Riproduci il suono dei cuori
+    // Riproduci il suono del vetro rotto per l'apertura dei cuori
     if(heartsSound) {
       heartsSound.currentTime = 0;
       heartsSound.play().catch(e => console.log("Impossibile riprodurre suono cuori:", e));
@@ -1291,7 +1447,7 @@ function playCard(playerIndex, card, handIndex){
   
   // Controlla se è stata giocata la regina di picche
   if(card.suit === 'spades' && card.value === 'Q'){
-    // Riproduci il suono della regina
+    // Riproduci il suono "uuuu" per la regina
     if(queenSound) {
       queenSound.currentTime = 0;
       queenSound.play().catch(e => console.log("Impossibile riprodurre suono regina:", e));
@@ -1648,6 +1804,12 @@ function calculateCardScore(card){
 }
 
 function startGame(){
+  // Riproduci il suono di inizio (trillo)
+  if(startSound) {
+    startSound.currentTime = 0;
+    startSound.play().catch(e => console.log("Impossibile riprodurre suono inizio:", e));
+  }
+  
   gameState.passingPhase = false;
   gameState.trick = [];
   gameState.leadSuit = null;
