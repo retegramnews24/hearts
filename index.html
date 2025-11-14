@@ -18,8 +18,11 @@
   --danger: #ef4444;
   --warning: #f59e0b;
   
-  --card-w: 42px; --card-h: 63px; --card-radius: 6px; --gap: 4px;
-  --center-size: 14px;
+  --card-w: 50px; /* Aumentato del 20% */
+  --card-h: 75px; /* Aumentato del 20% */
+  --card-radius: 6px; 
+  --gap: 4px;
+  --center-size: 17px; /* Aumentato del 20% */
   
   /* Shadow */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -50,6 +53,7 @@ body {
   padding: 8px;
   min-height: 100vh;
   overflow-x: hidden;
+  font-size: 14.4px; /* Aumentato del 20% */
 }
 
 /* Header Ultra Compatto */
@@ -71,7 +75,7 @@ body {
 }
 
 .game-title {
-  font-size: 14px;
+  font-size: 16.8px; /* Aumentato del 20% */
   font-weight: 700;
   background: linear-gradient(90deg, var(--primary), var(--secondary));
   -webkit-background-clip: text;
@@ -85,7 +89,7 @@ body {
 
 .game-title::before {
   content: "♥";
-  font-size: 16px;
+  font-size: 19.2px; /* Aumentato del 20% */
   color: var(--secondary);
 }
 
@@ -103,7 +107,7 @@ body {
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 12px;
+  font-size: 14.4px; /* Aumentato del 20% */
   font-weight: 500;
   flex-wrap: nowrap;
   overflow-x: auto;
@@ -127,11 +131,11 @@ body {
   align-items: center;
   gap: 1px;
   flex-shrink: 0;
-  min-width: 28px;
+  min-width: 34px; /* Aumentato del 20% */
 }
 
 .score-label {
-  font-size: 9px;
+  font-size: 10.8px; /* Aumentato del 20% */
   color: var(--text-dim);
   white-space: nowrap;
 }
@@ -144,7 +148,7 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   white-space: nowrap;
-  font-size: 11px;
+  font-size: 13.2px; /* Aumentato del 20% */
 }
 
 .round-scores {
@@ -161,13 +165,13 @@ body {
 }
 
 .round-score-label {
-  font-size: 9px;
+  font-size: 10.8px; /* Aumentato del 20% */
   color: var(--text-dim);
   white-space: nowrap;
 }
 
 .round-score-value {
-  font-size: 11px;
+  font-size: 13.2px; /* Aumentato del 20% */
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 4px;
@@ -200,10 +204,11 @@ body {
   min-height: 0;
 }
 
+/* Nord su una riga */
 .top-player {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-direction: row;
+  gap: 10px;
   align-items: center;
   justify-content: center;
   height: auto;
@@ -223,6 +228,7 @@ body {
   min-height: 0;
 }
 
+/* Est e Ovest più alti del 50% */
 .side-player {
   width: 50px;
   display: flex;
@@ -235,7 +241,7 @@ body {
   backdrop-filter: blur(5px);
   box-shadow: var(--shadow);
   justify-content: center;
-  height: 120px;
+  height: 180px; /* Aumentato del 50% */
 }
 
 .table {
@@ -300,15 +306,15 @@ body {
 }
 
 .card-back {
-  width: 26px;
-  height: 36px;
+  width: 31.2px; /* Aumentato del 20% */
+  height: 43.2px; /* Aumentato del 20% */
   border-radius: 4px;
   background: linear-gradient(145deg, #2c3e50, #1a2530);
   display: flex;
   align-items: center;
   justify-content: center;
   color: rgba(255, 255, 255, 0.7);
-  font-size: 9px;
+  font-size: 10.8px; /* Aumentato del 20% */
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: var(--shadow);
   position: relative;
@@ -318,7 +324,7 @@ body {
 .card-back::before {
   content: "♥";
   position: absolute;
-  font-size: 14px;
+  font-size: 16.8px; /* Aumentato del 20% */
   opacity: 0.1;
   color: white;
 }
@@ -395,7 +401,7 @@ body {
 }
 
 .card-top, .card-bottom {
-  font-size: 9px;
+  font-size: 10.8px; /* Aumentato del 20% */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -451,7 +457,7 @@ body {
   padding: 8px 12px;
   border-radius: 8px;
   z-index: 5;
-  font-size: 11px;
+  font-size: 13.2px; /* Aumentato del 20% */
   font-weight: 600;
   color: white;
   box-shadow: var(--shadow-lg);
@@ -467,7 +473,7 @@ button {
   color: white;
   font-weight: 600;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 13.2px; /* Aumentato del 20% */
   box-shadow: var(--shadow);
   transition: all 0.2s ease;
   display: flex;
@@ -503,7 +509,7 @@ select {
   padding: 5px 8px;
   border-radius: 5px;
   color: var(--text-light);
-  font-size: 11px;
+  font-size: 13.2px; /* Aumentato del 20% */
   box-shadow: var(--shadow-sm);
   white-space: nowrap;
 }
@@ -549,7 +555,7 @@ select {
 }
 
 .modal-title {
-  font-size: 16px;
+  font-size: 19.2px; /* Aumentato del 20% */
   font-weight: 700;
   background: linear-gradient(90deg, var(--primary), var(--secondary));
   -webkit-background-clip: text;
@@ -560,7 +566,7 @@ select {
   background: none;
   border: none;
   color: var(--text-dim);
-  font-size: 16px;
+  font-size: 19.2px; /* Aumentato del 20% */
   cursor: pointer;
   padding: 3px;
   border-radius: 4px;
@@ -575,7 +581,7 @@ select {
   color: var(--text-light);
   margin-top: 12px;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 14.4px; /* Aumentato del 20% */
 }
 
 .score-table th, .score-table td {
@@ -606,7 +612,7 @@ select {
 
 /* Bot score display */
 .bot-score {
-  font-size: 10px;
+  font-size: 12px; /* Aumentato del 20% */
   color: var(--text-light);
   font-weight: 600;
   background: rgba(0, 0, 0, 0.3);
@@ -616,7 +622,7 @@ select {
 }
 
 .player-label {
-  font-size: 10px;
+  font-size: 12px; /* Aumentato del 20% */
   color: var(--text-light);
   text-align: center;
   font-weight: 600;
@@ -629,23 +635,23 @@ select {
 /* responsive tweaks */
 @media (max-width: 380px) {
   :root {
-    --card-w: 38px;
-    --card-h: 57px;
-    --center-size: 12px;
+    --card-w: 45.6px; /* Aumentato del 20% */
+    --card-h: 68.4px; /* Aumentato del 20% */
+    --center-size: 14.4px; /* Aumentato del 20% */
   }
   
   .card-top, .card-bottom {
-    font-size: 8px;
+    font-size: 9.6px; /* Aumentato del 20% */
   }
   
   .card-back {
-    width: 22px;
-    height: 30px;
+    width: 26.4px; /* Aumentato del 20% */
+    height: 36px; /* Aumentato del 20% */
   }
   
   .side-player {
     width: 44px;
-    height: 100px;
+    height: 180px; /* Mantenuto alto */
   }
   
   .table {
@@ -658,12 +664,12 @@ select {
   }
   
   .score-item {
-    min-width: 24px;
+    min-width: 29px; /* Aumentato del 20% */
   }
   
   button {
     padding: 5px 8px;
-    font-size: 10px;
+    font-size: 12px; /* Aumentato del 20% */
   }
   
   .header {
@@ -673,7 +679,7 @@ select {
   }
   
   .game-title {
-    font-size: 12px;
+    font-size: 14.4px; /* Aumentato del 20% */
   }
   
   .header-content {
@@ -686,7 +692,7 @@ select {
   
   select {
     padding: 4px 6px;
-    font-size: 10px;
+    font-size: 12px; /* Aumentato del 20% */
   }
   
   .round-scores {
@@ -700,15 +706,15 @@ select {
   }
   
   .score-item {
-    min-width: 22px;
+    min-width: 26.4px; /* Aumentato del 20% */
   }
   
   .score-label {
-    font-size: 8px;
+    font-size: 9.6px; /* Aumentato del 20% */
   }
   
   .score-value {
-    font-size: 10px;
+    font-size: 12px; /* Aumentato del 20% */
   }
   
   .header-controls {
@@ -717,7 +723,7 @@ select {
   }
   
   button, select {
-    font-size: 9px;
+    font-size: 10.8px; /* Aumentato del 20% */
     padding: 4px 6px;
   }
 }
@@ -745,6 +751,43 @@ select {
 
 .always-visible {
   display: flex !important;
+}
+
+/* Stili per il riassunto del round */
+.round-summary {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-card);
+  padding: 15px;
+  border-radius: 10px;
+  z-index: 20;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 200px;
+}
+
+.round-summary h3 {
+  text-align: center;
+  margin-bottom: 10px;
+  color: var(--text-light);
+  font-size: 16.8px; /* Aumentato del 20% */
+}
+
+.round-summary-table {
+  width: 100%;
+  font-size: 13.2px; /* Aumentato del 20% */
+  border-collapse: collapse;
+}
+
+.round-summary-table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.round-summary-table tr:last-child td {
+  border-bottom: none;
 }
 </style>
 </head>
@@ -797,6 +840,7 @@ select {
   
   <div class="game-container">
     <div class="table-area">
+      <!-- Nord su una riga -->
       <div class="top-player" id="opponent1">
         <div class="player-label">Nord</div>
         <div class="bot-score" id="bot1-score">0</div>
@@ -804,6 +848,7 @@ select {
       </div>
       
       <div class="middle-area">
+        <!-- Ovest più alto -->
         <div class="side-player" id="opponent3">
           <div class="player-label">Ovest</div>
           <div class="bot-score" id="bot3-score">0</div>
@@ -818,6 +863,7 @@ select {
           </div>
         </div>
         
+        <!-- Est più alto -->
         <div class="side-player" id="opponent2">
           <div class="player-label">Est</div>
           <div class="bot-score" id="bot2-score">0</div>
@@ -868,11 +914,15 @@ select {
     </div>
   </div>
 
+  <!-- Elementi audio per i suoni -->
+  <audio id="hearts-sound" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
+  <audio id="queen-sound" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
+
 <script>
-// Il codice JavaScript rimane identico alla versione precedente
 // Variabili globali per gli elementi DOM
 let playerHandEl, tableEl, passBtn, newGameBtn, gameOverModal, closeModalBtn, difficultySelect;
 let currentRoundEl, roundPointsEl, newGameModalBtn, centerButtonContainer;
+let heartsSound, queenSound;
 
 const SUITS = ['clubs','diamonds','spades','hearts'];
 const VALUES = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
@@ -916,6 +966,14 @@ function initGame(){
   roundPointsEl = document.getElementById('round-points');
   newGameModalBtn = document.getElementById('new-game-modal-btn');
   centerButtonContainer = document.getElementById('center-button-container');
+  
+  // Inizializza gli elementi audio
+  heartsSound = document.getElementById('hearts-sound');
+  queenSound = document.getElementById('queen-sound');
+  
+  // Crea suoni di base (beep) per cuori e regina
+  createBeepSound(heartsSound, 523.25, 0.3); // Do5 per cuori
+  createBeepSound(queenSound, 659.25, 0.5); // Mi5 per regina
 
   createDeck();
   shuffleDeck();
@@ -952,6 +1010,47 @@ function initGame(){
     centerButtonContainer.style.display = 'block';
     gameState.cardsToPass = [];
   }
+}
+
+// Funzione per creare suoni di base
+function createBeepSound(audioElement, frequency, duration) {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.frequency.value = frequency;
+  oscillator.type = 'sine';
+  
+  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+  
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + duration);
+  
+  // Esporta il suono come blob e lo assegna all'elemento audio
+  const destination = audioContext.createMediaStreamDestination();
+  oscillator.connect(destination);
+  
+  const mediaRecorder = new MediaRecorder(destination.stream);
+  const chunks = [];
+  
+  mediaRecorder.ondataavailable = function(e) {
+    chunks.push(e.data);
+  };
+  
+  mediaRecorder.onstop = function() {
+    const blob = new Blob(chunks, { 'type' : 'audio/wav' });
+    const audioURL = window.URL.createObjectURL(blob);
+    audioElement.src = audioURL;
+  };
+  
+  mediaRecorder.start();
+  setTimeout(() => {
+    mediaRecorder.stop();
+  }, duration * 1000);
 }
 
 function createDeck(){
@@ -1180,8 +1279,23 @@ function setupEventListeners(){
 }
 
 function playCard(playerIndex, card, handIndex){
+  // Controlla se è la prima carta di cuori giocata
   if(!gameState.heartsBroken && card.suit === 'hearts'){
     gameState.heartsBroken = true;
+    // Riproduci il suono dei cuori
+    if(heartsSound) {
+      heartsSound.currentTime = 0;
+      heartsSound.play().catch(e => console.log("Impossibile riprodurre suono cuori:", e));
+    }
+  }
+  
+  // Controlla se è stata giocata la regina di picche
+  if(card.suit === 'spades' && card.value === 'Q'){
+    // Riproduci il suono della regina
+    if(queenSound) {
+      queenSound.currentTime = 0;
+      queenSound.play().catch(e => console.log("Impossibile riprodurre suono regina:", e));
+    }
   }
   
   // Se il giocatore è umano, rimuoviamo l'elemento della carta
@@ -1567,6 +1681,50 @@ function findPlayerWithTwoOfClubs(){
   return 0;
 }
 
+function showRoundSummary() {
+  const summary = document.createElement('div');
+  summary.className = 'round-summary';
+  summary.innerHTML = `
+    <h3>Fine Round ${gameState.round + 1}</h3>
+    <table class="round-summary-table">
+      <tr><td>Tu</td><td style="text-align:right">${gameState.players[2].roundScore} punti</td></tr>
+      <tr><td>Nord</td><td style="text-align:right">${gameState.players[0].roundScore} punti</td></tr>
+      <tr><td>Est</td><td style="text-align:right">${gameState.players[1].roundScore} punti</td></tr>
+      <tr><td>Ovest</td><td style="text-align:right">${gameState.players[3].roundScore} punti</td></tr>
+    </table>
+  `;
+  
+  tableEl.appendChild(summary);
+  
+  setTimeout(() => {
+    summary.remove();
+    proceedAfterRoundSummary();
+  }, 2000);
+}
+
+function proceedAfterRoundSummary() {
+  const maxScore = Math.max(...gameState.players.map(p=>p.totalScore));
+  if(maxScore >= 100){
+    endGame();
+    return;
+  }
+  
+  gameState.round++;
+  
+  // Prepara il prossimo round
+  gameState.passingPhase = true;
+  gameState.cardsToPass = [];
+  gameState.handChanged = true;
+  
+  createDeck();
+  shuffleDeck();
+  dealCards();
+  updateUI();
+  
+  // Re-inizializza il gioco con la nuova direzione di scambio
+  initGame();
+}
+
 function endRound(){
   let shooter = -1;
   for(let i=0;i<4;i++) {
@@ -1594,32 +1752,8 @@ function endRound(){
     scores: gameState.players.map(p => p.roundScore)
   });
   
-  for(let i=0;i<4;i++) {
-    gameState.players[i].roundScore = 0;
-  }
-  
-  updateUI();
-  
-  const maxScore = Math.max(...gameState.players.map(p=>p.totalScore));
-  if(maxScore >= 100){
-    endGame();
-    return;
-  }
-  
-  gameState.round++;
-  
-  // Prepara il prossimo round
-  gameState.passingPhase = true;
-  gameState.cardsToPass = [];
-  gameState.handChanged = true;
-  
-  createDeck();
-  shuffleDeck();
-  dealCards();
-  updateUI();
-  
-  // Re-inizializza il gioco con la nuova direzione di scambio
-  initGame();
+  // Mostra il riassunto del round per 2 secondi
+  showRoundSummary();
 }
 
 function enableCardSelection(enable){
