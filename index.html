@@ -18,177 +18,239 @@
   --danger: #ef4444;
   --warning: #f59e0b;
   
-  /* Dimensioni relative per migliore adattabilità */
-  --card-w: clamp(42px, 12vw, 65px);
-  --card-h: clamp(63px, 18vw, 98px);
-  --card-radius: 8px; 
-  --gap: 8px;
-  --center-size: clamp(14px, 4vw, 22px);
+  --card-w: 42px; --card-h: 63px; --card-radius: 6px; --gap: 4px;
+  --center-size: 14px;
   
   /* Shadow */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 6px 10px -3px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 12px 15px -5px rgba(0, 0, 0, 0.1), 0 6px 6px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Card styles aggiornati */
-.player-card, .center-card {
-  width: var(--card-w);
-  height: var(--card-h);
-  background: linear-gradient(145deg, #ffffff, #f0f0f0);
-  border-radius: var(--card-radius);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: linear-gradient(135deg, var(--bg-dark), #1a2238);
+  color: var(--text-light);
   display: flex;
   flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Header Ultra Compatto */
+.header {
+  display: flex;
   justify-content: space-between;
-  padding: 6px 5px;
-  box-shadow: var(--shadow);
-  color: #111;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  min-height: 50px;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  gap: 8px;
+}
+
+.game-title {
+  font-size: 14px;
   font-weight: 700;
-  flex: 0 0 auto;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  position: relative;
-  overflow: hidden;
-}
-
-.card-top, .card-bottom {
-  font-size: clamp(9px, 2.5vw, 12px);
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   display: flex;
   align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.game-title::before {
+  content: "♥";
+  font-size: 16px;
+  color: var(--secondary);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  flex: 1;
   justify-content: space-between;
-  z-index: 1;
 }
 
-.card-center {
+.scores {
   display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  flex: 1;
+  justify-content: center;
+}
+
+.scores::-webkit-scrollbar {
+  height: 2px;
+}
+
+.scores::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 1px;
+}
+
+.score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+  min-width: 28px;
+}
+
+.score-label {
+  font-size: 9px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.score-value {
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 0 3px rgba(106, 17, 203, 0.7);
+  background: linear-gradient(90deg, #ffffff, #f0f0f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.round-scores {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.round-score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.round-score-label {
+  font-size: 9px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.round-score-value {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.header-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Layout */
+.game-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+
+.table-area {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+
+.top-player {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   align-items: center;
   justify-content: center;
-  font-size: var(--center-size);
-  z-index: 1;
-}
-
-.card-center.small {
-  /* Ingrandimento del 20% per carte da 2 a 10 */
-  font-size: calc(var(--center-size) * 1.2);
-}
-
-.card-center.big {
-  font-size: calc(var(--center-size) * 1.8);
-}
-
-/* Card backs adattabili */
-.card-back {
-  width: clamp(28px, 8vw, 50px);
-  height: clamp(40px, 12vw, 72px);
-  border-radius: 6px;
-  background: linear-gradient(145deg, #2c3e50, #1a2530);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: clamp(9px, 2.5vw, 12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  height: auto;
+  padding: 6px;
+  border-radius: 10px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(5px);
   box-shadow: var(--shadow);
-  position: relative;
-  overflow: hidden;
+  min-height: 70px;
 }
 
-/* Miglioramenti responsivi aggiuntivi */
-@media (max-width: 480px) {
-  .header {
-    padding: 10px 12px;
-    min-height: 60px;
-  }
-  
-  .game-title {
-    font-size: 16px;
-  }
-  
-  .header-controls {
-    flex-direction: column;
-    gap: 6px;
-  }
-  
-  button {
-    padding: 8px 12px;
-    font-size: 12px;
-  }
-  
-  select {
-    padding: 6px 8px;
-    font-size: 12px;
-  }
-  
-  .table {
-    min-height: 120px;
-    padding: 10px;
-  }
-  
-  .side-player {
-    width: 45px;
-    height: 110px;
-    padding: 4px;
-  }
-  
-  .player-label {
-    font-size: 11px;
-  }
-  
-  .bot-score {
-    font-size: 10px;
-  }
+.middle-area {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
 }
 
-@media (max-width: 360px) {
-  :root {
-    --card-w: 38px;
-    --card-h: 57px;
-  }
-  
-  .header-content {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  
-  .header-controls {
-    order: 1;
-    width: 100%;
-    flex-direction: row;
-    justify-content: space-between;
-  }
+.side-player {
+  width: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(5px);
+  box-shadow: var(--shadow);
+  justify-content: center;
+  height: 120px;
 }
 
-@media (min-width: 1200px) {
-  :root {
-    --card-w: 65px;
-    --card-h: 98px;
-    --center-size: 22px;
-  }
-  
-  .table {
-    min-height: 250px;
-  }
-  
-  .side-player {
-    width: 80px;
-    height: 160px;
-  }
-}
 .table {
   flex: 1;
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 12px;
   background: linear-gradient(135deg, #0a5c36, #1a7d4a);
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  min-height: 180px;
+  min-height: 140px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
-  position: relative;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .table::before {
@@ -201,30 +263,21 @@
   background: 
     radial-gradient(circle at 20% 20%, rgba(255,255,255,0.05) 1px, transparent 1px),
     radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 1px, transparent 1px);
-  background-size: 30px 30px;
+  background-size: 20px 20px;
   opacity: 0.3;
-}
-
-.table::after {
-  content: "♥";
-  position: absolute;
-  font-size: 120px;
-  color: rgba(0, 0, 0, 0.1);
-  transform: rotate(-15deg);
-  z-index: 0;
 }
 
 /* Bottom player hand */
 .bottom-player {
   background: var(--bg-panel);
-  border-radius: 16px;
-  padding: 12px;
+  border-radius: 12px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   box-shadow: var(--shadow-lg);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  min-height: 100px;
+  min-height: 85px;
 }
 
 /* Opponent card-backs */
@@ -232,14 +285,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 1px;
   pointer-events: none;
-  height: 60px;
+  height: 50px;
 }
 
 .side-player .opponent-cards {
   flex-direction: column;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .top-player .opponent-cards {
@@ -247,15 +300,15 @@
 }
 
 .card-back {
-  width: 32px;
-  height: 44px;
-  border-radius: 6px;
+  width: 26px;
+  height: 36px;
+  border-radius: 4px;
   background: linear-gradient(145deg, #2c3e50, #1a2530);
   display: flex;
   align-items: center;
   justify-content: center;
   color: rgba(255, 255, 255, 0.7);
-  font-size: 11px;
+  font-size: 9px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: var(--shadow);
   position: relative;
@@ -265,17 +318,17 @@
 .card-back::before {
   content: "♥";
   position: absolute;
-  font-size: 18px;
+  font-size: 14px;
   opacity: 0.1;
   color: white;
 }
 
 .top-player .card-back {
-  margin: 0 -14px;
+  margin: 0 -12px;
 }
 
 .side-player .card-back {
-  margin: -14px 0;
+  margin: -12px 0;
 }
 
 /* Player hand layout */
@@ -283,12 +336,12 @@
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 4px;
   align-items: flex-start;
   justify-content: center;
   overflow: visible;
-  padding: 8px;
-  min-height: 80px;
+  padding: 6px;
+  min-height: 70px;
 }
 
 /* Card */
@@ -301,7 +354,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 6px 5px;
+  padding: 4px 3px;
   box-shadow: var(--shadow);
   color: #111;
   font-weight: 700;
@@ -317,7 +370,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 1px;
   background: linear-gradient(90deg, var(--primary), var(--secondary));
 }
 
@@ -327,13 +380,13 @@
 }
 
 .player-card.selectable:hover {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-xl);
 }
 
 .player-card.selected {
-  transform: translateY(-12px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  transform: translateY(-8px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 .player-card.invalid {
@@ -342,7 +395,7 @@
 }
 
 .card-top, .card-bottom {
-  font-size: 10px;
+  font-size: 9px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -366,7 +419,7 @@
 }
 
 .card-center.big {
-  font-size: calc(var(--center-size) * 1.8);
+  font-size: calc(var(--center-size) * 1.6);
 }
 
 /* colors for suits */
@@ -395,10 +448,10 @@
   left: 50%;
   transform: translate(-50%, -50%);
   background: rgba(0, 0, 0, 0.85);
-  padding: 12px 20px;
-  border-radius: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
   z-index: 5;
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 600;
   color: white;
   box-shadow: var(--shadow-lg);
@@ -409,21 +462,22 @@
 button {
   background: linear-gradient(90deg, var(--primary), var(--primary-dark));
   border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
+  padding: 6px 10px;
+  border-radius: 6px;
   color: white;
   font-weight: 600;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 11px;
   box-shadow: var(--shadow);
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  white-space: nowrap;
 }
 
 button:hover:not(:disabled) {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: var(--shadow-lg);
 }
 
@@ -446,11 +500,12 @@ button.secondary {
 select {
   background: var(--bg-card);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 5px 8px;
+  border-radius: 5px;
   color: var(--text-light);
-  font-size: 14px;
+  font-size: 11px;
   box-shadow: var(--shadow-sm);
+  white-space: nowrap;
 }
 
 /* Center button */
@@ -472,16 +527,16 @@ select {
   background: rgba(0, 0, 0, 0.8);
   z-index: 100;
   backdrop-filter: blur(5px);
-  padding: 20px;
+  padding: 15px;
 }
 
 .modal-content {
   background: var(--bg-card);
-  padding: 24px;
-  border-radius: 20px;
+  padding: 18px;
+  border-radius: 15px;
   color: var(--text-light);
   width: 100%;
-  max-width: 400px;
+  max-width: 350px;
   box-shadow: var(--shadow-xl);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -490,11 +545,11 @@ select {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .modal-title {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
   background: linear-gradient(90deg, var(--primary), var(--secondary));
   -webkit-background-clip: text;
@@ -505,10 +560,10 @@ select {
   background: none;
   border: none;
   color: var(--text-dim);
-  font-size: 20px;
+  font-size: 16px;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
+  padding: 3px;
+  border-radius: 4px;
 }
 
 .modal-close:hover {
@@ -518,12 +573,13 @@ select {
 .score-table {
   width: 100%;
   color: var(--text-light);
-  margin-top: 16px;
+  margin-top: 12px;
   border-collapse: collapse;
+  font-size: 12px;
 }
 
 .score-table th, .score-table td {
-  padding: 10px 12px;
+  padding: 6px 8px;
   text-align: left;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -545,86 +601,92 @@ select {
 .modal-actions {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 15px;
 }
 
 /* Bot score display */
 .bot-score {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--text-light);
   font-weight: 600;
   background: rgba(0, 0, 0, 0.3);
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-top: 2px;
+}
+
+.player-label {
+  font-size: 10px;
+  color: var(--text-light);
+  text-align: center;
+  font-weight: 600;
   padding: 2px 6px;
-  border-radius: 4px;
-  margin-top: 4px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
 }
 
 /* responsive tweaks */
-@media (max-width: 480px) {
+@media (max-width: 380px) {
   :root {
-    --card-w: 42px;
-    --card-h: 63px;
-    --center-size: 14px;
+    --card-w: 38px;
+    --card-h: 57px;
+    --center-size: 12px;
   }
   
   .card-top, .card-bottom {
-    font-size: 9px;
+    font-size: 8px;
   }
   
   .card-back {
-    width: 28px;
-    height: 40px;
+    width: 22px;
+    height: 30px;
   }
   
   .side-player {
-    width: 50px;
-    height: 120px;
+    width: 44px;
+    height: 100px;
   }
   
   .table {
-    min-height: 140px;
-    padding: 12px;
+    min-height: 120px;
+    padding: 8px;
   }
   
   .scores {
-    gap: 8px;
+    gap: 6px;
   }
   
   .score-item {
-    font-size: 12px;
+    min-width: 24px;
   }
   
   button {
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 5px 8px;
+    font-size: 10px;
   }
   
   .header {
-    flex-direction: row;
-    gap: 12px;
-    align-items: center;
-    min-height: 70px;
-    padding: 10px 12px;
-  }
-  
-  .header-content {
-    flex-direction: row;
-    align-items: center;
-    gap: 12px;
-  }
-  
-  .header-controls {
-    margin-left: auto;
-    flex-direction: column;
-    gap: 8px;
+    padding: 6px 8px;
+    min-height: 44px;
+    gap: 6px;
   }
   
   .game-title {
-    font-size: 16px;
+    font-size: 12px;
   }
   
-  .scores {
-    display: none;
+  .header-content {
+    gap: 6px;
+  }
+  
+  .header-controls {
+    gap: 6px;
+  }
+  
+  select {
+    padding: 4px 6px;
+    font-size: 10px;
   }
   
   .round-scores {
@@ -632,15 +694,31 @@ select {
   }
 }
 
-@media (min-width: 900px) {
-  :root {
-    --card-w: 54px;
-    --card-h: 81px;
-    --center-size: 18px;
+@media (max-width: 320px) {
+  .scores {
+    gap: 4px;
   }
   
-  .table {
-    min-height: 220px;
+  .score-item {
+    min-width: 22px;
+  }
+  
+  .score-label {
+    font-size: 8px;
+  }
+  
+  .score-value {
+    font-size: 10px;
+  }
+  
+  .header-controls {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  button, select {
+    font-size: 9px;
+    padding: 4px 6px;
   }
 }
 
@@ -658,6 +736,15 @@ select {
 
 .player-card {
   animation: dealCard 0.3s ease-out;
+}
+
+/* Utility classes for very small screens */
+.compact-hidden {
+  display: none;
+}
+
+.always-visible {
+  display: flex !important;
 }
 </style>
 </head>
@@ -686,11 +773,11 @@ select {
       
       <div class="round-scores">
         <div class="round-score-item">
-          <span class="round-score-label">Round</span>
+          <span class="round-score-label">R</span>
           <span class="round-score-value" id="current-round">0</span>
         </div>
         <div class="round-score-item">
-          <span class="round-score-label">Punti presi</span>
+          <span class="round-score-label">P</span>
           <span class="round-score-value" id="round-points">0</span>
         </div>
       </div>
@@ -702,7 +789,7 @@ select {
           <option value="hard">Difficile</option>
         </select>
         <button id="new-game-btn" class="secondary">
-          <span>Nuova partita</span>
+          <span>Nuova</span>
         </button>
       </div>
     </div>
@@ -711,20 +798,19 @@ select {
   <div class="game-container">
     <div class="table-area">
       <div class="top-player" id="opponent1">
-        <div class="player-label">Robottino Nord</div>
-        <div class="bot-score" id="bot1-score">Punti: 0</div>
+        <div class="player-label">Nord</div>
+        <div class="bot-score" id="bot1-score">0</div>
         <div class="opponent-cards" id="cards1"></div>
       </div>
       
       <div class="middle-area">
         <div class="side-player" id="opponent3">
-          <div class="player-label">Robottino Ovest</div>
-          <div class="bot-score" id="bot3-score">Punti: 0</div>
+          <div class="player-label">Ovest</div>
+          <div class="bot-score" id="bot3-score">0</div>
           <div class="opponent-cards" id="cards3"></div>
         </div>
         
         <div class="table" id="table">
-          <!-- carte giocate appariranno qui -->
           <div class="center-button-container" id="center-button-container" style="display: none;">
             <button id="pass-btn" disabled>
               <span>Scambia 3 carte</span>
@@ -733,8 +819,8 @@ select {
         </div>
         
         <div class="side-player" id="opponent2">
-          <div class="player-label">Robottino Est</div>
-          <div class="bot-score" id="bot2-score">Punti: 0</div>
+          <div class="player-label">Est</div>
+          <div class="bot-score" id="bot2-score">0</div>
           <div class="opponent-cards" id="cards2"></div>
         </div>
       </div>
@@ -764,15 +850,15 @@ select {
           <td style="text-align:right" id="final-player-score" class="highlight">0</td>
         </tr>
         <tr>
-          <td>Robottino Nord</td>
+          <td>Nord</td>
           <td style="text-align:right" id="final-bot1-score">0</td>
         </tr>
         <tr>
-          <td>Robottino Est</td>
+          <td>Est</td>
           <td style="text-align:right" id="final-bot2-score">0</td>
         </tr>
         <tr>
-          <td>Robottino Ovest</td>
+          <td>Ovest</td>
           <td style="text-align:right" id="final-bot3-score">0</td>
         </tr>
       </table>
@@ -783,6 +869,7 @@ select {
   </div>
 
 <script>
+// Il codice JavaScript rimane identico alla versione precedente
 // Variabili globali per gli elementi DOM
 let playerHandEl, tableEl, passBtn, newGameBtn, gameOverModal, closeModalBtn, difficultySelect;
 let currentRoundEl, roundPointsEl, newGameModalBtn, centerButtonContainer;
@@ -794,10 +881,10 @@ const SYMBOLS = { 'hearts':'♥','diamonds':'♦','clubs':'♣','spades':'♠' }
 let gameState = {
   deck:[],
   players:[
-    {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Nord'},
-    {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Est'},
+    {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Nord'},
+    {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Est'},
     {hand:[],roundScore:0,totalScore:0,isHuman:true, name:'Tu'},
-    {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Ovest'}
+    {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Ovest'}
   ],
   currentPlayer:0,
   trick:[],
@@ -843,13 +930,13 @@ function initGame(){
   
   switch(gameState.passingDirection) {
     case 0: // Sinistra (passa a Ovest)
-      targetName = "Robottino Ovest";
+      targetName = "Ovest";
       break;
     case 1: // Destra (passa a Est)
-      targetName = "Robottino Est";
+      targetName = "Est";
       break;
     case 2: // Fronte (passa a Nord)
-      targetName = "Robottino Nord";
+      targetName = "Nord";
       break;
     case 3: // Nessuno scambio
       break;
@@ -921,9 +1008,9 @@ function updateUI(){
   roundPointsEl.textContent = gameState.players[2].roundScore;
   
   // Aggiorna i punteggi dei bot
-  document.getElementById('bot1-score').textContent = `Punti: ${gameState.players[0].roundScore}`;
-  document.getElementById('bot2-score').textContent = `Punti: ${gameState.players[1].roundScore}`;
-  document.getElementById('bot3-score').textContent = `Punti: ${gameState.players[3].roundScore}`;
+  document.getElementById('bot1-score').textContent = gameState.players[0].roundScore;
+  document.getElementById('bot2-score').textContent = gameState.players[1].roundScore;
+  document.getElementById('bot3-score').textContent = gameState.players[3].roundScore;
   
   updateOpponentCards();
   updateTable();
@@ -1023,10 +1110,10 @@ function createTableCardElement(card, playerIndex){
     <div class="card-bottom">${card.value}${SYMBOLS[card.suit]}</div>
   `;
   const positions = [
-    {x:0, y:-60},
-    {x:70, y:0},
-    {x:0, y:60},
-    {x:-70, y:0}
+    {x:0, y:-50},
+    {x:60, y:0},
+    {x:0, y:50},
+    {x:-60, y:0}
   ];
   const p = positions[playerIndex] || positions[0];
   el.style.transform = `translate(calc(-50% + ${p.x}px), calc(-50% + ${p.y}px))`;
@@ -1580,10 +1667,10 @@ function startNewGame(){
   gameState = {
     deck:[],
     players:[
-      {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Nord'},
-      {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Est'},
+      {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Nord'},
+      {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Est'},
       {hand:[],roundScore:0,totalScore:0,isHuman:true, name:'Tu'},
-      {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Robottino Ovest'}
+      {hand:[],roundScore:0,totalScore:0,isHuman:false,name:'Ovest'}
     ],
     currentPlayer:0,
     trick:[],
@@ -1606,4 +1693,3 @@ function startNewGame(){
 </script>
 </body>
 </html>
-
