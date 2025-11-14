@@ -6,131 +6,757 @@
 <title>Hearts - Gioco di Carte</title>
 <style>
 :root{
-  --bg1:#14243f; --bg2:#274b73; --panel: rgba(0,0,0,0.28);
-  --card-w:52px; --card-h:78px; --card-radius:6px; --gap:8px;
-  --center-size:18px;
+  --primary: #6a11cb;
+  --primary-dark: #2575fc;
+  --secondary: #ff416c;
+  --bg-dark: #121826;
+  --bg-card: #1e293b;
+  --bg-panel: rgba(30, 41, 59, 0.8);
+  --text-light: #f1f5f9;
+  --text-dim: #94a3b8;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  
+  --card-w: 52px; --card-h: 78px; --card-radius: 8px; --gap: 8px;
+  --center-size: 18px;
+  
+  /* Shadow */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-html,body{height:100%}
-body{
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background:linear-gradient(135deg,var(--bg1),var(--bg2));
-  color:#fff; display:flex; flex-direction:column; gap:8px; padding:10px; min-height:100vh;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: linear-gradient(135deg, var(--bg-dark), #1a2238);
+  color: var(--text-light);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
 /* Header */
-.header{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;background:var(--panel);font-size:15px}
-.scores{display:flex;gap:12px;align-items:center}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.game-title {
+  font-size: 18px;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.game-title::before {
+  content: "♥";
+  font-size: 20px;
+  color: var(--secondary);
+}
+
+.scores {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.score-label {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.score-value {
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 /* Layout */
-.game-container{display:flex;flex-direction:column;gap:8px;flex:1;min-height:0}
-.table-area{display:flex;flex-direction:column;gap:8px;flex:1;min-height:0}
-.top-player{display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;height:auto}
-.middle-area{display:flex;align-items:stretch;gap:8px;flex:1;min-height:0}
-.side-player{width:64px;display:flex;flex-direction:column;align-items:center;gap:6px}
-.table{flex:1;border-radius:12px;padding:12px;background:rgba(0,0,0,0.16);display:flex;justify-content:center;align-items:center;position:relative;min-height:180px;overflow:hidden}
+.game-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.table-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.top-player {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(5px);
+  box-shadow: var(--shadow);
+}
+
+.middle-area {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.side-player {
+  width: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(5px);
+  box-shadow: var(--shadow);
+}
+
+.table {
+  flex: 1;
+  border-radius: 16px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  min-height: 180px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
 /* Bottom player hand */
-.bottom-player{background:var(--panel);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:8px}
-.player-label{font-size:13px;color:#eee;text-align:center}
+.bottom-player {
+  background: var(--bg-panel);
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.player-label {
+  font-size: 14px;
+  color: var(--text-light);
+  text-align: center;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  display: inline-block;
+  margin: 0 auto;
+}
+
+.player-label.human {
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  color: white;
+}
+
 /* Opponent card-backs */
-.opponent-cards{display:flex;align-items:center;justify-content:center;gap:6px;pointer-events:none}
-.side-player .opponent-cards{flex-direction:column; margin-top: 10px;}
-.top-player .opponent-cards{flex-direction:row}
-.card-back{
-  width:36px;height:50px;border-radius:4px;background:linear-gradient(180deg,#2c3e50,#26394a);
-  display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;border:1px solid rgba(255,255,255,0.08);
-  box-shadow:0 2px 4px rgba(0,0,0,0.45);
+.opponent-cards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: none;
 }
-.top-player .card-back{ margin:0 -10px }
-.side-player .card-back{ margin:-10px 0 }
-/* Player hand layout: wrap to multiple rows, centered, no overlap */
-.player-hand{
-  display:flex; flex-direction:row; flex-wrap:wrap; gap:4px; align-items:flex-start; justify-content:center;
-  overflow:visible; padding:6px;
+
+.side-player .opponent-cards {
+  flex-direction: column;
+  margin-top: 8px;
 }
+
+.top-player .opponent-cards {
+  flex-direction: row;
+}
+
+.card-back {
+  width: 36px;
+  height: 50px;
+  border-radius: 6px;
+  background: linear-gradient(145deg, #2c3e50, #1a2530);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-back::before {
+  content: "♥";
+  position: absolute;
+  font-size: 20px;
+  opacity: 0.1;
+  color: white;
+}
+
+.top-player .card-back {
+  margin: 0 -10px;
+}
+
+.side-player .card-back {
+  margin: -10px 0;
+}
+
+/* Player hand layout */
+.player-hand {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: visible;
+  padding: 8px;
+  min-height: 90px;
+}
+
 /* Card */
-.player-card, .center-card{
-  width:var(--card-w); height:var(--card-h); background:linear-gradient(180deg,#fff,#f6f6f6);
-  border-radius:var(--card-radius); border:1px solid rgba(0,0,0,0.08);
-  display:flex; flex-direction:column; justify-content:space-between; padding:6px 5px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.25); color:#111; font-weight:700; flex:0 0 auto;
+.player-card, .center-card {
+  width: var(--card-w);
+  height: var(--card-h);
+  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  border-radius: var(--card-radius);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 6px 5px;
+  box-shadow: var(--shadow);
+  color: #111;
+  font-weight: 700;
+  flex: 0 0 auto;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
 }
-.player-card.selectable{cursor:pointer}
-.player-card.selected{transform:translateY(-10px); box-shadow:0 6px 12px rgba(0,0,0,0.45)}
-.card-top, .card-bottom{font-size:11px;display:flex;align-items:center;justify-content:space-between}
-.card-bottom{transform:rotate(180deg)}
-.card-center{display:flex;align-items:center;justify-content:center;font-size:var(--center-size)}
-.card-center.small{font-size:calc(var(--center-size) - 2px)}
-/* big center for J Q K A (reduced by 10%) */
-.card-center.big{font-size:calc(var(--center-size) * 1.8)}
+
+.player-card::before, .center-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+}
+
+.player-card.selectable {
+  cursor: pointer;
+  transform: translateY(0);
+}
+
+.player-card.selectable:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-xl);
+}
+
+.player-card.selected {
+  transform: translateY(-12px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.player-card.invalid {
+  opacity: 0.5;
+  filter: grayscale(0.7);
+}
+
+.card-top, .card-bottom {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1;
+}
+
+.card-bottom {
+  transform: rotate(180deg);
+}
+
+.card-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--center-size);
+  z-index: 1;
+}
+
+.card-center.small {
+  font-size: calc(var(--center-size) - 2px);
+}
+
+.card-center.big {
+  font-size: calc(var(--center-size) * 1.8);
+}
+
 /* colors for suits */
-.hearts, .diamonds{ color:#c0392b }
-.clubs, .spades{ color:#1b2630 }
-/* center table card absolute */
-.center-card{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:2; transition:transform .25s ease }
-/* trick winner popup */
-.trick-winner{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.7); padding:8px 12px; border-radius:8px; z-index:5; font-size:13px }
-/* controls and status */
-.controls{display:flex;justify-content:space-between;gap:8px;padding:8px;background:var(--panel);border-radius:10px;flex-shrink:0}
-.controls .left, .controls .right{display:flex;gap:8px;align-items:center}
-button{background:#3498db;border:none;padding:8px 12px;border-radius:8px;color:#fff;font-weight:600;cursor:pointer;font-size:13px}
-button:disabled{background:#7f8c8d;cursor:not-allowed}
-.status{padding:8px;text-align:center;background:var(--panel);border-radius:10px;font-size:13px}
-/* modal */
-.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);z-index:40}
-.modal-content{background:#23384a;padding:16px;border-radius:12px;color:#fff;width:92%;max-width:360px}
-/* responsive tweaks */
-@media (max-width:480px){
-  :root{ --card-w:46px; --card-h:70px; --center-size:16px }
-  .card-top, .card-bottom{font-size:9px}
-  .card-back{width:30px;height:42px}
-  .side-player{ width:48px }
-  .table{ min-height:140px; padding:8px }
+.hearts, .diamonds {
+  color: #e53e3e;
 }
-@media (min-width:900px){
-  :root{ --card-w:60px; --card-h:90px; --center-size:20px }
-  .table{ min-height:300px }
+
+.clubs, .spades {
+  color: #2d3748;
+}
+
+/* center table card absolute */
+.center-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* trick winner popup */
+.trick-winner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.85);
+  padding: 12px 20px;
+  border-radius: 12px;
+  z-index: 5;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+/* controls and status */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-panel);
+  border-radius: 16px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.controls .left, .controls .right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+button {
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  box-shadow: var(--shadow);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button:disabled {
+  background: #4b5563;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+button.secondary {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+select {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--text-light);
+  font-size: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.status {
+  padding: 12px 16px;
+  text-align: center;
+  background: var(--bg-panel);
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status.highlight {
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  color: white;
+  font-weight: 600;
+}
+
+/* Round score display */
+.round-scores {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.round-score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.round-score-label {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.round-score-value {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 100;
+  backdrop-filter: blur(5px);
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--bg-card);
+  padding: 24px;
+  border-radius: 20px;
+  color: var(--text-light);
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.score-table {
+  width: 100%;
+  color: var(--text-light);
+  margin-top: 16px;
+  border-collapse: collapse;
+}
+
+.score-table th, .score-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.score-table th {
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.score-table tr:last-child td {
+  border-bottom: none;
+}
+
+.score-table .highlight {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* responsive tweaks */
+@media (max-width: 480px) {
+  :root {
+    --card-w: 46px;
+    --card-h: 70px;
+    --center-size: 16px;
+  }
+  
+  .card-top, .card-bottom {
+    font-size: 9px;
+  }
+  
+  .card-back {
+    width: 30px;
+    height: 42px;
+  }
+  
+  .side-player {
+    width: 56px;
+  }
+  
+  .table {
+    min-height: 140px;
+    padding: 12px;
+  }
+  
+  .scores {
+    gap: 12px;
+  }
+  
+  .score-item {
+    font-size: 12px;
+  }
+  
+  button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 900px) {
+  :root {
+    --card-w: 60px;
+    --card-h: 90px;
+    --center-size: 20px;
+  }
+  
+  .table {
+    min-height: 220px;
+  }
+}
+
+/* Animation for card dealing */
+@keyframes dealCard {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) rotate(-5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+.player-card {
+  animation: dealCard 0.3s ease-out;
+}
+
+/* Turn indicator */
+.turn-indicator {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 10;
+  box-shadow: var(--shadow);
+}
+
+/* Passing direction indicator */
+.passing-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.passing-arrow {
+  font-size: 16px;
+  color: var(--primary);
 }
 </style>
 </head>
 <body>
   <div class="header">
-    <div>Hearts</div>
+    <div class="game-title">Hearts</div>
     <div class="scores">
-      Tu: <span id="player-score">0</span> |
-      Nord: <span id="score1">0</span> |
-      Est: <span id="score2">0</span> |
-      Ovest: <span id="score3">0</span>
+      <div class="score-item">
+        <span class="score-label">Tu</span>
+        <span class="score-value" id="player-score">0</span>
+      </div>
+      <div class="score-item">
+        <span class="score-label">Nord</span>
+        <span class="score-value" id="score1">0</span>
+      </div>
+      <div class="score-item">
+        <span class="score-label">Est</span>
+        <span class="score-value" id="score2">0</span>
+      </div>
+      <div class="score-item">
+        <span class="score-label">Ovest</span>
+        <span class="score-value" id="score3">0</span>
+      </div>
     </div>
   </div>
+  
   <div class="game-container">
     <div class="table-area">
       <div class="top-player" id="opponent1">
         <div class="player-label">Robottino Nord</div>
         <div class="opponent-cards" id="cards1"></div>
       </div>
+      
       <div class="middle-area">
         <div class="side-player" id="opponent3">
           <div class="player-label">Robottino Ovest</div>
           <div class="opponent-cards" id="cards3"></div>
         </div>
+        
         <div class="table" id="table">
           <!-- carte giocate appariranno qui -->
         </div>
+        
         <div class="side-player" id="opponent2">
           <div class="player-label">Robottino Est</div>
           <div class="opponent-cards" id="cards2"></div>
         </div>
       </div>
+      
       <div class="bottom-player" id="player-area">
-        <div class="player-label">Le tue carte</div>
+        <div class="player-label human">Le tue carte</div>
         <div class="player-hand" id="player-hand" aria-label="Mano del giocatore">
           <!-- carte giocatore -->
         </div>
       </div>
     </div>
+    
     <div class="status" id="status">Il gioco sta iniziando...</div>
+    
+    <div class="round-scores" id="round-scores">
+      <div class="round-score-item">
+        <span class="round-score-label">Round</span>
+        <span class="round-score-value" id="current-round">0</span>
+      </div>
+      <div class="round-score-item">
+        <span class="round-score-label">Punti presi</span>
+        <span class="round-score-value" id="round-points">0</span>
+      </div>
+    </div>
+    
     <div class="controls" role="group" aria-label="Controlli partita">
       <div class="left">
-        <button id="pass-btn" disabled>Scambia 3 carte</button>
+        <button id="pass-btn" disabled>
+          <span>Scambia 3 carte</span>
+        </button>
         <select id="difficulty-select">
           <option value="easy">Facile</option>
           <option value="medium" selected>Medio</option>
@@ -138,29 +764,52 @@ button:disabled{background:#7f8c8d;cursor:not-allowed}
         </select>
       </div>
       <div class="right">
-        <button id="new-game-btn">Nuova partita</button>
+        <button id="new-game-btn" class="secondary">
+          <span>Nuova partita</span>
+        </button>
       </div>
     </div>
   </div>
+  
   <div class="modal hidden" id="game-over-modal" style="display:none;">
     <div class="modal-content">
-      <h2>Partita Finita!</h2>
+      <div class="modal-header">
+        <h2 class="modal-title">Partita Finita!</h2>
+        <button class="modal-close" id="close-modal-btn">×</button>
+      </div>
       <p id="game-result">Hai vinto!</p>
-      <table style="width:100%;color:#fff;margin-top:8px">
-        <tr><th style="text-align:left">Giocatore</th><th style="text-align:right">Punti</th></tr>
-        <tr><td>Tu</td><td style="text-align:right" id="final-player-score">0</td></tr>
-        <tr><td>Robottino Nord</td><td style="text-align:right" id="final-bot1-score">0</td></tr>
-        <tr><td>Robottino Est</td><td style="text-align:right" id="final-bot2-score">0</td></tr>
-        <tr><td>Robottino Ovest</td><td style="text-align:right" id="final-bot3-score">0</td></tr>
+      <table class="score-table">
+        <tr>
+          <th>Giocatore</th>
+          <th style="text-align:right">Punti</th>
+        </tr>
+        <tr>
+          <td>Tu</td>
+          <td style="text-align:right" id="final-player-score" class="highlight">0</td>
+        </tr>
+        <tr>
+          <td>Robottino Nord</td>
+          <td style="text-align:right" id="final-bot1-score">0</td>
+        </tr>
+        <tr>
+          <td>Robottino Est</td>
+          <td style="text-align:right" id="final-bot2-score">0</td>
+        </tr>
+        <tr>
+          <td>Robottino Ovest</td>
+          <td style="text-align:right" id="final-bot3-score">0</td>
+        </tr>
       </table>
-      <div style="display:flex;justify-content:center;margin-top:12px">
-        <button id="close-modal-btn">Chiudi</button>
+      <div class="modal-actions">
+        <button id="new-game-modal-btn">Nuova Partita</button>
       </div>
     </div>
   </div>
+
 <script>
 // Variabili globali per gli elementi DOM
 let playerHandEl, tableEl, statusEl, passBtn, newGameBtn, gameOverModal, closeModalBtn, difficultySelect;
+let currentRoundEl, roundPointsEl, newGameModalBtn;
 
 const SUITS = ['clubs','diamonds','spades','hearts'];
 const VALUES = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
@@ -183,7 +832,10 @@ let gameState = {
   gameOver:false,
   passingPhase:true,
   passingDirection: 0, // 0: sinistra, 1: destra, 2: fronte, 3: nessuno scambio
-  difficulty: 'medium'
+  difficulty: 'medium',
+  roundHistory: [],
+  humanCardElements: [],
+  handChanged: true
 };
 
 document.addEventListener('DOMContentLoaded', initGame);
@@ -198,6 +850,9 @@ function initGame(){
   gameOverModal = document.getElementById('game-over-modal');
   closeModalBtn = document.getElementById('close-modal-btn');
   difficultySelect = document.getElementById('difficulty-select');
+  currentRoundEl = document.getElementById('current-round');
+  roundPointsEl = document.getElementById('round-points');
+  newGameModalBtn = document.getElementById('new-game-modal-btn');
 
   createDeck();
   shuffleDeck();
@@ -231,15 +886,40 @@ function initGame(){
   
   if (gameState.passingDirection === 3) {
     statusEl.textContent = "Nessuno scambio in questo round. Il gioco inizierà automaticamente.";
+    statusEl.classList.add('highlight');
     setTimeout(() => {
       startGame();
     }, 2000);
   } else {
     statusEl.textContent = `Seleziona 3 carte da passare a ${targetName}`;
+    statusEl.classList.add('highlight');
     enableCardSelection(true);
     passBtn.disabled = true;
     passBtn.style.display = 'block';
     gameState.cardsToPass = [];
+    
+    // Aggiungi indicazione visiva della direzione
+    const passingInfo = document.createElement('div');
+    passingInfo.className = 'passing-info';
+    passingInfo.innerHTML = `
+      <span>Passa a:</span>
+      <span class="passing-arrow">${getDirectionArrow()}</span>
+      <span>${targetName}</span>
+    `;
+    statusEl.appendChild(passingInfo);
+  }
+  
+  // Aggiorna il display del round
+  currentRoundEl.textContent = gameState.round + 1;
+  roundPointsEl.textContent = gameState.players[2].roundScore;
+}
+
+function getDirectionArrow() {
+  switch(gameState.passingDirection) {
+    case 0: return '←';
+    case 1: return '→';
+    case 2: return '↑';
+    default: return '';
   }
 }
 
@@ -285,25 +965,82 @@ function verifyAllPlayersHave13Cards(context){
 function updateUI(){
   if (!playerHandEl) return;
   
-  playerHandEl.innerHTML = '';
-  gameState.players[2].hand.forEach((card, idx) => {
-    const cardEl = createCardElement(card, idx);
-    playerHandEl.appendChild(cardEl);
-  });
+  updatePlayerHand();
   
   document.getElementById('player-score').textContent = gameState.players[2].totalScore;
   document.getElementById('score1').textContent = gameState.players[0].totalScore;
   document.getElementById('score2').textContent = gameState.players[1].totalScore;
   document.getElementById('score3').textContent = gameState.players[3].totalScore;
   
+  // Aggiorna i punti del round
+  roundPointsEl.textContent = gameState.players[2].roundScore;
+  
   updateOpponentCards();
   updateTable();
+  updateTurnIndicator();
+}
+
+function updatePlayerHand() {
+  const human = gameState.players[2];
+  const hand = human.hand;
+
+  if (gameState.handChanged || !gameState.humanCardElements || gameState.humanCardElements.length !== hand.length) {
+    // Ricrea tutta la mano
+    playerHandEl.innerHTML = '';
+    gameState.humanCardElements = [];
+    hand.forEach((card, idx) => {
+      const cardEl = createCardElement(card, idx);
+      gameState.humanCardElements.push(cardEl);
+      playerHandEl.appendChild(cardEl);
+    });
+    gameState.handChanged = false;
+  } else {
+    // Aggiornamento incrementale: aggiorna solo lo stato
+    gameState.humanCardElements.forEach((cardEl, idx) => {
+      const card = hand[idx];
+      updateCardElement(cardEl, card, idx);
+    });
+  }
+}
+
+function updateCardElement(cardEl, card, index) {
+  // Aggiorna le classi in base allo stato
+  cardEl.classList.remove('selectable', 'selected', 'invalid');
+  
+  if (gameState.passingPhase) {
+    cardEl.classList.add('selectable');
+  } else if (gameState.currentPlayer === 2) {
+    if (isValidMove(2, card)) {
+      cardEl.classList.add('selectable');
+    } else {
+      cardEl.classList.add('invalid');
+    }
+  }
+}
+
+function updateTurnIndicator() {
+  // Rimuovi indicatori precedenti
+  document.querySelectorAll('.turn-indicator').forEach(el => el.remove());
+  
+  // Aggiungi indicatore al giocatore corrente
+  const players = [document.getElementById('opponent1'), 
+                   document.getElementById('opponent2'),
+                   document.getElementById('player-area'),
+                   document.getElementById('opponent3')];
+  
+  if (players[gameState.currentPlayer]) {
+    const indicator = document.createElement('div');
+    indicator.className = 'turn-indicator';
+    indicator.textContent = 'Turno';
+    players[gameState.currentPlayer].appendChild(indicator);
+  }
 }
 
 function createCardElement(card, index){
   const el = document.createElement('div');
   el.className = `player-card ${card.suit}`;
-  el.dataset.index = index;
+  el.dataset.suit = card.suit;
+  el.dataset.value = card.value;
   const isFace = ['J','Q','K','A'].includes(card.value);
   const centerClass = isFace ? 'card-center big' : 'card-center small';
   el.innerHTML = `
@@ -311,11 +1048,42 @@ function createCardElement(card, index){
     <div class="${centerClass} ${card.suit}">${card.value}${SYMBOLS[card.suit]}</div>
     <div class="card-bottom">${card.value}${SYMBOLS[card.suit]}</div>
   `;
-  el.addEventListener('click', () => {
-    if(el.classList.contains('selectable')) selectCard(index);
-  });
-  if(gameState.passingPhase) el.classList.add('selectable');
+  el.addEventListener('click', selectCard);
+  
   return el;
+}
+
+function selectCard(event) {
+  const cardEl = event.currentTarget;
+  const suit = cardEl.dataset.suit;
+  const value = cardEl.dataset.value;
+  const hand = gameState.players[2].hand;
+  const index = hand.findIndex(card => card.suit === suit && card.value === value);
+  if (index === -1) return; // Carta non trovata, non dovrebbe accadere
+
+  if(gameState.passingPhase){
+    if(gameState.cardsToPass.includes(index)){
+      gameState.cardsToPass = gameState.cardsToPass.filter(i=>i!==index);
+      cardEl.classList.remove('selected');
+    } else if(gameState.cardsToPass.length < 3){
+      gameState.cardsToPass.push(index);
+      cardEl.classList.add('selected');
+    }
+    passBtn.disabled = gameState.cardsToPass.length !== 3;
+    return;
+  }
+  
+  if(gameState.currentPlayer !== 2) return;
+  const card = hand[index];
+  if(!isValidMove(2, card)){
+    statusEl.textContent = 'Mossa non valida! Devi seguire il seme di uscita se possibile.';
+    statusEl.classList.add('highlight');
+    setTimeout(() => {
+      statusEl.classList.remove('highlight');
+    }, 2000);
+    return;
+  }
+  playCard(2, card, index);
 }
 
 function createTableCardElement(card, playerIndex){
@@ -383,38 +1151,30 @@ function updateTable(){
 function setupEventListeners(){
   passBtn.addEventListener('click', passSelectedCards);
   newGameBtn.addEventListener('click', startNewGame);
+  newGameModalBtn.addEventListener('click', startNewGame);
   closeModalBtn.addEventListener('click', ()=>{ gameOverModal.style.display = 'none'; });
   difficultySelect.addEventListener('change', (e) => {
     gameState.difficulty = e.target.value;
   });
 }
 
-function selectCard(index){
-  if(gameState.passingPhase){
-    const cardEls = playerHandEl.querySelectorAll('.player-card');
-    if(gameState.cardsToPass.includes(index)){
-      gameState.cardsToPass = gameState.cardsToPass.filter(i=>i!==index);
-      cardEls[index]?.classList.remove('selected');
-    } else if(gameState.cardsToPass.length < 3){
-      gameState.cardsToPass.push(index);
-      cardEls[index]?.classList.add('selected');
-    }
-    passBtn.disabled = gameState.cardsToPass.length !== 3;
-    return;
-  }
-  
-  if(gameState.currentPlayer !== 2) return;
-  const card = gameState.players[2].hand[index];
-  if(!isValidMove(2, card)){
-    statusEl.textContent = 'Mossa non valida! Devi seguire il seme di uscita se possibile.';
-    return;
-  }
-  playCard(2, card, index);
-}
-
 function playCard(playerIndex, card, handIndex){
   if(!gameState.heartsBroken && card.suit === 'hearts'){
     gameState.heartsBroken = true;
+    statusEl.textContent = 'I cuori sono stati rotti!';
+    statusEl.classList.add('highlight');
+    setTimeout(() => {
+      statusEl.classList.remove('highlight');
+    }, 1500);
+  }
+  
+  // Se il giocatore è umano, rimuoviamo l'elemento della carta
+  if (playerIndex === 2) {
+    // Rimuovi l'elemento dalla mano visualizzata
+    if (gameState.humanCardElements[handIndex]) {
+      gameState.humanCardElements[handIndex].remove();
+      gameState.humanCardElements.splice(handIndex, 1);
+    }
   }
   
   gameState.players[playerIndex].hand.splice(handIndex, 1);
@@ -654,6 +1414,8 @@ function passSelectedCards(){
   
   console.log("Carte del giocatore umano dopo scambio:", gameState.players[2].hand.map(c => `${c.value}${SYMBOLS[c.suit]}`));
   
+  // Segnala che la mano è cambiata
+  gameState.handChanged = true;
   startGame();
 }
 
@@ -763,6 +1525,9 @@ function startGame(){
   gameState.leadSuit = null;
   gameState.heartsBroken = false;
   
+  statusEl.classList.remove('highlight');
+  statusEl.innerHTML = ''; // Rimuove eventuali elementi aggiuntivi
+  
   const starter = findPlayerWithTwoOfClubs();
   gameState.currentPlayer = starter;
   
@@ -809,11 +1574,18 @@ function endRound(){
       }
     }
     statusEl.textContent = `${gameState.players[shooter].name} ha preso tutti i punti!`;
+    statusEl.classList.add('highlight');
   } else {
     for(let i=0;i<4;i++) {
       gameState.players[i].totalScore += gameState.players[i].roundScore;
     }
   }
+  
+  // Salva i punteggi del round nella cronologia
+  gameState.roundHistory.push({
+    round: gameState.round,
+    scores: gameState.players.map(p => p.roundScore)
+  });
   
   for(let i=0;i<4;i++) {
     gameState.players[i].roundScore = 0;
@@ -832,6 +1604,7 @@ function endRound(){
   // Prepara il prossimo round
   gameState.passingPhase = true;
   gameState.cardsToPass = [];
+  gameState.handChanged = true;
   
   createDeck();
   shuffleDeck();
@@ -845,8 +1618,25 @@ function endRound(){
 function enableCardSelection(enable){
   const cardEls = playerHandEl.querySelectorAll('.player-card');
   cardEls.forEach(el => {
-    if(enable) el.classList.add('selectable');
-    else el.classList.remove('selectable','selected');
+    el.classList.remove('selectable', 'selected', 'invalid');
+    if(enable) {
+      if(gameState.passingPhase) {
+        el.classList.add('selectable');
+      } else if(gameState.currentPlayer === 2) {
+        const suit = el.dataset.suit;
+        const value = el.dataset.value;
+        const hand = gameState.players[2].hand;
+        const index = hand.findIndex(card => card.suit === suit && card.value === value);
+        if(index !== -1) {
+          const card = hand[index];
+          if(isValidMove(2, card)) {
+            el.classList.add('selectable');
+          } else {
+            el.classList.add('invalid');
+          }
+        }
+      }
+    }
   });
 }
 
@@ -884,7 +1674,10 @@ function startNewGame(){
     gameOver:false,
     passingPhase:true,
     passingDirection: 0,
-    difficulty: difficultySelect.value
+    difficulty: difficultySelect.value,
+    roundHistory: [],
+    humanCardElements: [],
+    handChanged: true
   };
   
   gameOverModal.style.display = 'none';
