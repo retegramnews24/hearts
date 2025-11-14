@@ -82,6 +82,13 @@ body {
   color: var(--secondary);
 }
 
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
 .scores {
   display: flex;
   gap: 16px;
@@ -107,6 +114,39 @@ body {
   background: linear-gradient(90deg, var(--primary), var(--primary-dark));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.round-scores {
+  display: flex;
+  gap: 16px;
+  margin-left: 10px;
+}
+
+.round-score-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.round-score-label {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.round-score-value {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.header-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-left: auto;
 }
 
 /* Layout */
@@ -186,6 +226,7 @@ body {
   gap: 12px;
   box-shadow: var(--shadow-lg);
   border: 1px solid rgba(255, 255, 255, 0.05);
+  min-height: 110px;
 }
 
 .player-label {
@@ -449,55 +490,6 @@ select {
   box-shadow: var(--shadow-sm);
 }
 
-.status {
-  padding: 12px 16px;
-  text-align: center;
-  background: var(--bg-panel);
-  border-radius: 16px;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: var(--shadow);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  min-height: 46px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.status.highlight {
-  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
-  color: white;
-  font-weight: 600;
-}
-
-/* Round score display */
-.round-scores {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 8px;
-}
-
-.round-score-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.round-score-label {
-  font-size: 11px;
-  color: var(--text-dim);
-}
-
-.round-score-value {
-  font-size: 14px;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.2);
-}
-
 /* modal */
 .modal {
   position: fixed;
@@ -622,6 +614,24 @@ select {
     padding: 8px 12px;
     font-size: 13px;
   }
+  
+  .header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .header-controls {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 @media (min-width: 900px) {
@@ -652,22 +662,6 @@ select {
   animation: dealCard 0.3s ease-out;
 }
 
-/* Turn indicator */
-.turn-indicator {
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(90deg, var(--primary), var(--primary-dark));
-  color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  z-index: 10;
-  box-shadow: var(--shadow);
-}
-
 /* Passing direction indicator */
 .passing-info {
   display: flex;
@@ -688,22 +682,46 @@ select {
 <body>
   <div class="header">
     <div class="game-title">Hearts</div>
-    <div class="scores">
-      <div class="score-item">
-        <span class="score-label">Tu</span>
-        <span class="score-value" id="player-score">0</span>
+    <div class="header-content">
+      <div class="scores">
+        <div class="score-item">
+          <span class="score-label">Tu</span>
+          <span class="score-value" id="player-score">0</span>
+        </div>
+        <div class="score-item">
+          <span class="score-label">Nord</span>
+          <span class="score-value" id="score1">0</span>
+        </div>
+        <div class="score-item">
+          <span class="score-label">Est</span>
+          <span class="score-value" id="score2">0</span>
+        </div>
+        <div class="score-item">
+          <span class="score-label">Ovest</span>
+          <span class="score-value" id="score3">0</span>
+        </div>
       </div>
-      <div class="score-item">
-        <span class="score-label">Nord</span>
-        <span class="score-value" id="score1">0</span>
+      
+      <div class="round-scores">
+        <div class="round-score-item">
+          <span class="round-score-label">Round</span>
+          <span class="round-score-value" id="current-round">0</span>
+        </div>
+        <div class="round-score-item">
+          <span class="round-score-label">Punti presi</span>
+          <span class="round-score-value" id="round-points">0</span>
+        </div>
       </div>
-      <div class="score-item">
-        <span class="score-label">Est</span>
-        <span class="score-value" id="score2">0</span>
-      </div>
-      <div class="score-item">
-        <span class="score-label">Ovest</span>
-        <span class="score-value" id="score3">0</span>
+      
+      <div class="header-controls">
+        <select id="difficulty-select">
+          <option value="easy">Facile</option>
+          <option value="medium" selected>Medio</option>
+          <option value="hard">Difficile</option>
+        </select>
+        <button id="new-game-btn" class="secondary">
+          <span>Nuova partita</span>
+        </button>
       </div>
     </div>
   </div>
@@ -732,23 +750,9 @@ select {
       </div>
       
       <div class="bottom-player" id="player-area">
-        <div class="player-label human">Le tue carte</div>
         <div class="player-hand" id="player-hand" aria-label="Mano del giocatore">
           <!-- carte giocatore -->
         </div>
-      </div>
-    </div>
-    
-    <div class="status" id="status">Il gioco sta iniziando...</div>
-    
-    <div class="round-scores" id="round-scores">
-      <div class="round-score-item">
-        <span class="round-score-label">Round</span>
-        <span class="round-score-value" id="current-round">0</span>
-      </div>
-      <div class="round-score-item">
-        <span class="round-score-label">Punti presi</span>
-        <span class="round-score-value" id="round-points">0</span>
       </div>
     </div>
     
@@ -756,16 +760,6 @@ select {
       <div class="left">
         <button id="pass-btn" disabled>
           <span>Scambia 3 carte</span>
-        </button>
-        <select id="difficulty-select">
-          <option value="easy">Facile</option>
-          <option value="medium" selected>Medio</option>
-          <option value="hard">Difficile</option>
-        </select>
-      </div>
-      <div class="right">
-        <button id="new-game-btn" class="secondary">
-          <span>Nuova partita</span>
         </button>
       </div>
     </div>
@@ -808,7 +802,7 @@ select {
 
 <script>
 // Variabili globali per gli elementi DOM
-let playerHandEl, tableEl, statusEl, passBtn, newGameBtn, gameOverModal, closeModalBtn, difficultySelect;
+let playerHandEl, tableEl, passBtn, newGameBtn, gameOverModal, closeModalBtn, difficultySelect;
 let currentRoundEl, roundPointsEl, newGameModalBtn;
 
 const SUITS = ['clubs','diamonds','spades','hearts'];
@@ -844,7 +838,6 @@ function initGame(){
   // Inizializza gli elementi DOM
   playerHandEl = document.getElementById('player-hand');
   tableEl = document.getElementById('table');
-  statusEl = document.getElementById('status');
   passBtn = document.getElementById('pass-btn');
   newGameBtn = document.getElementById('new-game-btn');
   gameOverModal = document.getElementById('game-over-modal');
@@ -863,55 +856,32 @@ function initGame(){
   // Determina la direzione di scambio in base al round
   gameState.passingDirection = gameState.round % 4;
   
-  let directionText = "";
   let targetName = "";
   
   switch(gameState.passingDirection) {
     case 0: // Sinistra (passa a Ovest)
-      directionText = "sinistra (Robottino Ovest)";
       targetName = "Robottino Ovest";
       break;
     case 1: // Destra (passa a Est)
-      directionText = "destra (Robottino Est)";
       targetName = "Robottino Est";
       break;
     case 2: // Fronte (passa a Nord)
-      directionText = "fronte (Robottino Nord)";
       targetName = "Robottino Nord";
       break;
     case 3: // Nessuno scambio
-      directionText = "nessuno scambio";
       break;
   }
   
   if (gameState.passingDirection === 3) {
-    statusEl.textContent = "Nessuno scambio in questo round. Il gioco inizierà automaticamente.";
-    statusEl.classList.add('highlight');
     setTimeout(() => {
       startGame();
     }, 2000);
   } else {
-    statusEl.textContent = `Seleziona 3 carte da passare a ${targetName}`;
-    statusEl.classList.add('highlight');
     enableCardSelection(true);
     passBtn.disabled = true;
     passBtn.style.display = 'block';
     gameState.cardsToPass = [];
-    
-    // Aggiungi indicazione visiva della direzione
-    const passingInfo = document.createElement('div');
-    passingInfo.className = 'passing-info';
-    passingInfo.innerHTML = `
-      <span>Passa a:</span>
-      <span class="passing-arrow">${getDirectionArrow()}</span>
-      <span>${targetName}</span>
-    `;
-    statusEl.appendChild(passingInfo);
   }
-  
-  // Aggiorna il display del round
-  currentRoundEl.textContent = gameState.round + 1;
-  roundPointsEl.textContent = gameState.players[2].roundScore;
 }
 
 function getDirectionArrow() {
@@ -973,11 +943,11 @@ function updateUI(){
   document.getElementById('score3').textContent = gameState.players[3].totalScore;
   
   // Aggiorna i punti del round
+  currentRoundEl.textContent = gameState.round + 1;
   roundPointsEl.textContent = gameState.players[2].roundScore;
   
   updateOpponentCards();
   updateTable();
-  updateTurnIndicator();
 }
 
 function updatePlayerHand() {
@@ -1015,24 +985,6 @@ function updateCardElement(cardEl, card, index) {
     } else {
       cardEl.classList.add('invalid');
     }
-  }
-}
-
-function updateTurnIndicator() {
-  // Rimuovi indicatori precedenti
-  document.querySelectorAll('.turn-indicator').forEach(el => el.remove());
-  
-  // Aggiungi indicatore al giocatore corrente
-  const players = [document.getElementById('opponent1'), 
-                   document.getElementById('opponent2'),
-                   document.getElementById('player-area'),
-                   document.getElementById('opponent3')];
-  
-  if (players[gameState.currentPlayer]) {
-    const indicator = document.createElement('div');
-    indicator.className = 'turn-indicator';
-    indicator.textContent = 'Turno';
-    players[gameState.currentPlayer].appendChild(indicator);
   }
 }
 
@@ -1076,11 +1028,6 @@ function selectCard(event) {
   if(gameState.currentPlayer !== 2) return;
   const card = hand[index];
   if(!isValidMove(2, card)){
-    statusEl.textContent = 'Mossa non valida! Devi seguire il seme di uscita se possibile.';
-    statusEl.classList.add('highlight');
-    setTimeout(() => {
-      statusEl.classList.remove('highlight');
-    }, 2000);
     return;
   }
   playCard(2, card, index);
@@ -1161,11 +1108,6 @@ function setupEventListeners(){
 function playCard(playerIndex, card, handIndex){
   if(!gameState.heartsBroken && card.suit === 'hearts'){
     gameState.heartsBroken = true;
-    statusEl.textContent = 'I cuori sono stati rotti!';
-    statusEl.classList.add('highlight');
-    setTimeout(() => {
-      statusEl.classList.remove('highlight');
-    }, 1500);
   }
   
   // Se il giocatore è umano, rimuoviamo l'elemento della carta
@@ -1190,7 +1132,6 @@ function playCard(playerIndex, card, handIndex){
     setTimeout(completeTrick, 900);
   } else {
     gameState.currentPlayer = (gameState.currentPlayer + 1) % 4;
-    statusEl.textContent = `Turno di ${gameState.players[gameState.currentPlayer].name}`;
     if(gameState.currentPlayer !== 2){
       setTimeout(playBotTurn, 700);
     } else {
@@ -1343,7 +1284,6 @@ function completeTrick(){
   winnerEl.className = 'trick-winner';
   winnerEl.textContent = winning ? `${gameState.players[winning.player].name} prende il trick!` : 'Trick pareggiato';
   tableEl.appendChild(winnerEl);
-  statusEl.textContent = winning ? `${gameState.players[winning.player].name} prende il trick e guadagna ${pts} punti!` : 'Trick completato';
   
   gameState.currentPlayer = winning ? winning.player : gameState.currentPlayer;
   
@@ -1525,9 +1465,6 @@ function startGame(){
   gameState.leadSuit = null;
   gameState.heartsBroken = false;
   
-  statusEl.classList.remove('highlight');
-  statusEl.innerHTML = ''; // Rimuove eventuali elementi aggiuntivi
-  
   const starter = findPlayerWithTwoOfClubs();
   gameState.currentPlayer = starter;
   
@@ -1536,7 +1473,6 @@ function startGame(){
   if(starter === 2){
     const idx = gameState.players[2].hand.findIndex(c => c.suit === 'clubs' && c.value === '2');
     if(idx !== -1){
-      statusEl.textContent = 'Sei il primo: il 2 di fiori verrà giocato automaticamente.';
       enableCardSelection(false);
       setTimeout(()=>{
         const card = gameState.players[2].hand[idx];
@@ -1545,7 +1481,6 @@ function startGame(){
       return;
     }
   } else {
-    statusEl.textContent = `Il giocatore ${gameState.players[starter].name} inizia.`;
     enableCardSelection(false);
     setTimeout(playBotTurn, 900);
   }
@@ -1573,8 +1508,6 @@ function endRound(){
         gameState.players[i].totalScore += 26;
       }
     }
-    statusEl.textContent = `${gameState.players[shooter].name} ha preso tutti i punti!`;
-    statusEl.classList.add('highlight');
   } else {
     for(let i=0;i<4;i++) {
       gameState.players[i].totalScore += gameState.players[i].roundScore;
