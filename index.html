@@ -18,8 +18,8 @@
   --danger: #ef4444;
   --warning: #f59e0b;
   
-  --card-w: 52px; --card-h: 78px; --card-radius: 8px; --gap: 8px;
-  --center-size: 18px;
+  --card-w: 47px; --card-h: 70px; --card-radius: 8px; --gap: 8px;
+  --center-size: 16px;
   
   /* Shadow */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -65,6 +65,8 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.05);
   min-height: 70px;
   flex-shrink: 0;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
 .game-title {
@@ -76,6 +78,8 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .game-title::before {
@@ -87,16 +91,31 @@ body {
 .header-content {
   display: flex;
   align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
+  gap: 16px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  flex: 1;
+  justify-content: space-between;
 }
 
 .scores {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
   font-size: 14px;
   font-weight: 500;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.scores::-webkit-scrollbar {
+  height: 4px;
+}
+
+.scores::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
 }
 
 .score-item {
@@ -104,11 +123,13 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 2px;
+  flex-shrink: 0;
 }
 
 .score-label {
   font-size: 11px;
   color: var(--text-dim);
+  white-space: nowrap;
 }
 
 .score-value {
@@ -118,12 +139,14 @@ body {
   background: linear-gradient(90deg, #ffffff, #f0f0f0);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  white-space: nowrap;
 }
 
 .round-scores {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   margin-left: 10px;
+  flex-shrink: 0;
 }
 
 .round-score-item {
@@ -136,6 +159,7 @@ body {
 .round-score-label {
   font-size: 11px;
   color: var(--text-dim);
+  white-space: nowrap;
 }
 
 .round-score-value {
@@ -145,6 +169,7 @@ body {
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.2);
   color: #ffffff;
+  white-space: nowrap;
 }
 
 .header-controls {
@@ -152,6 +177,7 @@ body {
   gap: 12px;
   align-items: center;
   margin-left: auto;
+  flex-shrink: 0;
 }
 
 /* Layout */
@@ -194,31 +220,57 @@ body {
 }
 
 .side-player {
-  width: 70px;
+  width: 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
+  gap: 4px;
+  padding: 6px;
   border-radius: 12px;
   background: var(--bg-panel);
   backdrop-filter: blur(5px);
   box-shadow: var(--shadow);
+  justify-content: center;
+  height: 140px;
 }
 
 .table {
   flex: 1;
   border-radius: 16px;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #0a5c36, #1a7d4a);
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
   min-height: 180px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.table::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.05) 1px, transparent 1px),
+    radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.3;
+}
+
+.table::after {
+  content: "♥";
+  position: absolute;
+  font-size: 120px;
+  color: rgba(0, 0, 0, 0.1);
+  transform: rotate(-15deg);
+  z-index: 0;
 }
 
 /* Bottom player hand */
@@ -231,7 +283,7 @@ body {
   gap: 12px;
   box-shadow: var(--shadow-lg);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  min-height: 110px;
+  min-height: 100px;
 }
 
 /* Opponent card-backs */
@@ -239,13 +291,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 2px;
   pointer-events: none;
+  height: 60px;
 }
 
 .side-player .opponent-cards {
   flex-direction: column;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .top-player .opponent-cards {
@@ -253,15 +306,15 @@ body {
 }
 
 .card-back {
-  width: 36px;
-  height: 50px;
+  width: 32px;
+  height: 44px;
   border-radius: 6px;
   background: linear-gradient(145deg, #2c3e50, #1a2530);
   display: flex;
   align-items: center;
   justify-content: center;
   color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
+  font-size: 11px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: var(--shadow);
   position: relative;
@@ -271,17 +324,17 @@ body {
 .card-back::before {
   content: "♥";
   position: absolute;
-  font-size: 20px;
+  font-size: 18px;
   opacity: 0.1;
   color: white;
 }
 
 .top-player .card-back {
-  margin: 0 -10px;
+  margin: 0 -14px;
 }
 
 .side-player .card-back {
-  margin: -10px 0;
+  margin: -14px 0;
 }
 
 /* Player hand layout */
@@ -289,12 +342,12 @@ body {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
   align-items: flex-start;
   justify-content: center;
   overflow: visible;
   padding: 8px;
-  min-height: 90px;
+  min-height: 80px;
 }
 
 /* Card */
@@ -348,7 +401,7 @@ body {
 }
 
 .card-top, .card-bottom {
-  font-size: 11px;
+  font-size: 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -554,12 +607,23 @@ select {
   margin-top: 20px;
 }
 
+/* Bot score display */
+.bot-score {
+  font-size: 12px;
+  color: var(--text-light);
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
 /* responsive tweaks */
 @media (max-width: 480px) {
   :root {
-    --card-w: 46px;
-    --card-h: 70px;
-    --center-size: 16px;
+    --card-w: 42px;
+    --card-h: 63px;
+    --center-size: 14px;
   }
   
   .card-top, .card-bottom {
@@ -567,12 +631,13 @@ select {
   }
   
   .card-back {
-    width: 30px;
-    height: 42px;
+    width: 28px;
+    height: 40px;
   }
   
   .side-player {
-    width: 56px;
+    width: 50px;
+    height: 120px;
   }
   
   .table {
@@ -581,7 +646,7 @@ select {
   }
   
   .scores {
-    gap: 12px;
+    gap: 8px;
   }
   
   .score-item {
@@ -594,30 +659,43 @@ select {
   }
   
   .header {
-    flex-direction: column;
+    flex-direction: row;
     gap: 12px;
-    align-items: flex-start;
-    min-height: 90px;
+    align-items: center;
+    min-height: 70px;
+    padding: 10px 12px;
   }
   
   .header-content {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
     gap: 12px;
   }
   
   .header-controls {
-    margin-left: 0;
-    width: 100%;
-    justify-content: space-between;
+    margin-left: auto;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .game-title {
+    font-size: 16px;
+  }
+  
+  .scores {
+    display: none;
+  }
+  
+  .round-scores {
+    display: none;
   }
 }
 
 @media (min-width: 900px) {
   :root {
-    --card-w: 60px;
-    --card-h: 90px;
-    --center-size: 20px;
+    --card-w: 54px;
+    --card-h: 81px;
+    --center-size: 18px;
   }
   
   .table {
@@ -693,12 +771,14 @@ select {
     <div class="table-area">
       <div class="top-player" id="opponent1">
         <div class="player-label">Robottino Nord</div>
+        <div class="bot-score" id="bot1-score">Punti: 0</div>
         <div class="opponent-cards" id="cards1"></div>
       </div>
       
       <div class="middle-area">
         <div class="side-player" id="opponent3">
           <div class="player-label">Robottino Ovest</div>
+          <div class="bot-score" id="bot3-score">Punti: 0</div>
           <div class="opponent-cards" id="cards3"></div>
         </div>
         
@@ -713,6 +793,7 @@ select {
         
         <div class="side-player" id="opponent2">
           <div class="player-label">Robottino Est</div>
+          <div class="bot-score" id="bot2-score">Punti: 0</div>
           <div class="opponent-cards" id="cards2"></div>
         </div>
       </div>
@@ -897,6 +978,11 @@ function updateUI(){
   // Aggiorna i punti del round
   currentRoundEl.textContent = gameState.round + 1;
   roundPointsEl.textContent = gameState.players[2].roundScore;
+  
+  // Aggiorna i punteggi dei bot
+  document.getElementById('bot1-score').textContent = `Punti: ${gameState.players[0].roundScore}`;
+  document.getElementById('bot2-score').textContent = `Punti: ${gameState.players[1].roundScore}`;
+  document.getElementById('bot3-score').textContent = `Punti: ${gameState.players[3].roundScore}`;
   
   updateOpponentCards();
   updateTable();
